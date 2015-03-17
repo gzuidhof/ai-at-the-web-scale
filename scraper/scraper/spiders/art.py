@@ -44,6 +44,8 @@ class ArtSpider(CrawlSpider):
         for link in links:
             
             link = link.split('?')[0]            
+                        
+            
             
             if self.valid_url(link):        
                 if (url,link) not in lines:
@@ -72,24 +74,21 @@ class ArtSpider(CrawlSpider):
         link_matrix = np.zeros(dim)
         
         for source, to in self.lines:
-            fromIndex = indices[source]
-            toIndex = indices[to]
+            from_index = indices[source]
+            to_index = indices[to]
             
-            link_matrix[fromIndex,toIndex] = 1
+            link_matrix[from_index,to_index] = 1
             
-            if to == 'http://www.ru.nl/artificialintelligence/master/ai-curriculum/double-degree/artificial/':
-                print "yadayayadayadyadyadyadya", source
-        
+            if np.sum(link_matrix[:,to_index])  == 0:
+                print link_matrix[:,to_index]
+
+
         sums = np.sum(link_matrix, axis=0)
         
         for i, summy in enumerate(sums):
-            pass
-            #print nodes[i], summy
-        
-        #print link_matrix
-        #print self.lines
-        
-        #link_matrix = 
+            if (summy == 0):
+                print "impossible", nodes[i]
+                
         
     
     
