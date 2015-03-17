@@ -2,7 +2,7 @@
 from scrapy.contrib.spiders import CrawlSpider, Rule
 from scrapy.contrib.linkextractors.lxmlhtml import LxmlLinkExtractor
 from scrapy.selector import Selector
-
+import numpy as np
 
 
 
@@ -18,7 +18,6 @@ class ArtSpider(CrawlSpider):
     )
 
 
-
     visited = []
     to_visit = []
     nodes = []
@@ -32,39 +31,62 @@ class ArtSpider(CrawlSpider):
         nodes = self.nodes
         lines = self.lines
         visited = self.visited        
-        to_visit = self.to_visit
+        
         
         sel = Selector(response)
-        print "------------------------------------\n"
-        #print "Now in {0}".format(url)
-       # print sel.xpath('//a/@href').extract()
         
         links = sel.xpath('//a/@href').extract()
         nodes.append(url)  
         visited.append(url)
                
         
+            
         for link in links:
             
             link = link.split('?')[0]            
             
             if self.valid_url(link):        
-            
-                lines.append( (url,link))
+                if (url,link) not in lines:
+                    lines.append( (url,link))
                 if link not in nodes:
                     nodes.append(link)
-                if link not in visited and link not in to_visit:
-                    to_visit.append(link)
+                
+                
             
         return None
     
     
     def closed(self,reason):
-        print '\n\n\n'
-        print self.nodes
-        print 'Amount of pages: ', len(self.nodes)
-        print 'Amount of links: ', len(self.lines)
+
+        lines = self.lines
+        nodes = self.nodes        
         
+        print '\n\n\n'
+        print 'Amount of pages: ', len(nodes)
+        print 'Amount of links: ', len(lines)
+        
+        indices = {page:i for i,page in enumerate(nodes)}
+        
+        dim = (len(nodes), len(nodes))        
+        
+        link_matrix = np.zeros(dim)
+        
+        for source, to in self.lines:
+            fromIndex = indices[source]
+            toIndex = indices[to]
+            
+            link_matrix[fromIndex,toIndex] = 1
+            
+            if to == 'http://www.ru.nl/artificialintelligence/master/ai-curriculum/double-degree/artificial/':
+                print "yadayayadayadyadyadyadya", source
+        
+        sums = np.sum(link_matrix, axis=0)
+        
+        for i, summy in enumerate(sums):
+            pass
+            #print nodes[i], summy
+        
+        #print link_matrix
         #print self.lines
         
         #link_matrix = 
