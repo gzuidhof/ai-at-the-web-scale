@@ -1,15 +1,22 @@
 # -*- coding: utf-8 -*-
-from scrapy import *
+from scrapy.contrib.spiders import CrawlSpider, Rule
+from scrapy.contrib.linkextractors.lxmlhtml import LxmlLinkExtractor
+from scrapy.selector import Selector
 
 
 
-class ArtSpider(Spider):
+
+class ArtSpider(CrawlSpider):
     name = "art"
     allowed_domains = ["www.ru.nl"]
     start_urls = (
         'http://www.ru.nl/artificialintelligence/',
     )
     
+    rules = (Rule (LxmlLinkExtractor(allow=('.*/artificialintelligence.*'),deny=('.*\?.*'))
+    , callback="parse_link", follow= True),
+    )
+
 
 
     visited = []
@@ -17,9 +24,8 @@ class ArtSpider(Spider):
     nodes = []
     lines = []
     
-    meta = {"dont_redirect":True}
-
-    def parse(self, response):
+    
+    def parse_link(self, response):
         
         url = response.url      
         
@@ -28,9 +34,8 @@ class ArtSpider(Spider):
         visited = self.visited        
         to_visit = self.to_visit
         
-        
         sel = Selector(response)
-        print "\n------------------------------------\n"
+        print "------------------------------------\n"
         #print "Now in {0}".format(url)
        # print sel.xpath('//a/@href').extract()
         
@@ -51,21 +56,23 @@ class ArtSpider(Spider):
                 if link not in visited and link not in to_visit:
                     to_visit.append(link)
             
-        return self.get_next(None)
-            
-    def get_next(self, err):
-        next = self.to_visit.pop()  
-        
-        #print "Next: {0}".format(next)
-        return Request(next, 
-                      callback = self.parse, 
-                      meta = self.meta, 
-                      errback = self.get_next)
-        
+        return None
     
+    
+    def closed(self,reason):
+        print '\n\n\n'
+        print self.nodes
+        print 'Amount of pages: ', len(self.nodes)
+        print 'Amount of links: ', len(self.lines)
+        
+        #print self.lines
+        
+        #link_matrix = 
+        
     
     
     def valid_url(self, url):
         return url.startswith(self.start_urls[0])
         
-    
+
+
