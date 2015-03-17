@@ -86,8 +86,13 @@ class ArtSpider(CrawlSpider):
         sums = np.sum(link_matrix, axis=0)
         
         for i, summy in enumerate(sums):
+            
             if (summy == 0):
                 print "impossible", nodes[i]
+                
+                for (f, t) in self.lines:
+                    if t == nodes[i]:
+                        print 'wtf', f
                 
         
     
