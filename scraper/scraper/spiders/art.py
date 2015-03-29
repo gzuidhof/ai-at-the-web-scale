@@ -13,7 +13,7 @@ class ArtSpider(CrawlSpider):
         'http://www.ru.nl/artificialintelligence/',
     )
     
-    rules = (Rule (LxmlLinkExtractor(allow=('.*/artificialintelligence.*'),deny=('.*\?.*'))
+    rules = (Rule (LxmlLinkExtractor(allow=('.*/artificialintelligence.*'),)#deny=('.*\?.*'))
     , callback="parse_link", follow= True),
     )
 
@@ -32,7 +32,8 @@ class ArtSpider(CrawlSpider):
         lines = self.lines
         visited = self.visited        
         
-        
+        #if '?' in url:
+        #    return
         sel = Selector(response)
         
         links = sel.xpath('//a/@href').extract()
@@ -43,15 +44,15 @@ class ArtSpider(CrawlSpider):
             
         for link in links:
             
-            link = link.split('?')[0]            
+           # link = link.split('?')[0]            
                         
             
             
             if self.valid_url(link):        
                 if (url,link) not in lines:
                     lines.append( (url,link))
-                if link not in nodes:
-                    nodes.append(link)
+                #if link not in nodes:
+                   # nodes.append(link)
                 
                 
             
@@ -67,32 +68,56 @@ class ArtSpider(CrawlSpider):
         print 'Amount of pages: ', len(nodes)
         print 'Amount of links: ', len(lines)
         
-        indices = {page:i for i,page in enumerate(nodes)}
+        # Prune the links for present pages
+        nl = []
+        for f,t in lines:
+            if t in nodes and f in nodes:
+                nl.append( (f,t))
         
-        dim = (len(nodes), len(nodes))        
-        
-        link_matrix = np.zeros(dim)
-        
-        for source, to in self.lines:
-            from_index = indices[source]
-            to_index = indices[to]
-            
-            link_matrix[from_index,to_index] = 1
-            
-            if np.sum(link_matrix[:,to_index])  == 0:
-                print link_matrix[:,to_index]
-
-
-        sums = np.sum(link_matrix, axis=0)
-        
-        for i, summy in enumerate(sums):
-            
-            if (summy == 0):
-                print "impossible", nodes[i]
                 
-                for (f, t) in self.lines:
-                    if t == nodes[i]:
-                        print 'wtf', f
+        
+        X = build_link_matrix(nodes, nl)
+        Q = np.zeros(X.shape)
+        sums = np.sum(X, axis=1)
+        
+        m = X.shape[0]
+        
+        for i, row in enumerate(X):
+            for j, entry in enumerate(row):
+                sum_of_row = sums[i]
+                if sum_of_row == 0:
+                    Q[i,j] = 1/m
+                else:
+                    Q[i,j] = 1/sum_of_row
+        
+        print Q
+        
+       
+        a = 0.85
+        J = np.ones(X.shape)
+        
+        draws = np.random.uniform(size=m)
+        p = draws/sum(draws)     
+        
+        G = a * Q + (1-a)*(J /m)
+        print G
+        
+        p_store = []
+        
+        for n in xrange(50):
+            p_store.append(p)
+            p = p*G#np.dot(p,G)
+        
+        print p_store
+        last = p_store[-1]
+        for i, p in enumerate(last):
+            print nodes[i], p
+        
+        #for i, summy in enumerate(sums):
+            #print nodes[i], summy
+            #if (summy == 0):
+                #print "\n\nimpossible", nodes[i]
+                
                 
         
     
@@ -102,3 +127,25 @@ class ArtSpider(CrawlSpider):
         
 
 
+def build_link_matrix(nodes, lines):
+    print 'Building link matrix'
+    print 'Amount of pages: ', len(nodes)
+    print 'Amount of links: ', len(lines)
+    
+    indices = {page:i for i,page in enumerate(nodes)}
+    dim = (len(nodes), len(nodes))  
+    
+    link_matrix = np.zeros(dim)
+        
+    for source, to in lines:
+        from_index = indices[source]
+        to_index = indices[to]
+        
+        link_matrix[from_index,to_index] = 1
+           
+    
+    return link_matrix
+       
+nodes = ['a','b']
+lines = [('b','a')]
+print np.sum(build_link_matrix(nodes, lines), axis=0)
