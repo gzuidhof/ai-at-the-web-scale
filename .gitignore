@@ -55,3 +55,4 @@ target/
 *.spyderworkspace
 scraper/.spyderproject
 *.spyderproject
+credentials.py
