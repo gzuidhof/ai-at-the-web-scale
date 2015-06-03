@@ -33,8 +33,8 @@ def propose_page(i, run_id, header, adtype, color, productid, price):
     assert header in HEADER_TYPES
     assert adtype in AD_TYPES
     assert color in COLOR_TYPES
-    assert productid >= MIN_PRODUCT and productid <= MAX_PRODUCT
-    assert price >= MIN_PRICE and price <= MAX_PRICE
+    assert productid >= PRODUCT_MIN and productid <= PRODUCT_MAX
+    assert price >= PRICE_MIN and price <= PRICE_MAX
 
     params = "?i={0}&runid={1}&teamid={2}&teampw={3}".format(i,run_id,TEAM_ID,PASSWORD)
     params += "&header={0}&adtype={1}&color={2}&productid={3}&price={4}".format(header, adtype, color, productid, price)
