@@ -1,3 +1,5 @@
+import csv
+import numpy as np
 import json
 import urllib2
 import pandas as pd
@@ -53,11 +55,16 @@ def reward(prices, clicks):
     return np.sum(prices * clicks)
 
 if __name__ == '__main__':
-    df = DataFrame()
+    context_list = []
     
-    for i in range(5):
+    for i in range(10000):
         context = get_context(i = i, run_id = 0)['context']
-        df.append(context)
+        context_list.append(context)
         
         #success = propose_page(i = i, runid = 0, 5, 'skyscraper', 'blue', 10, 25.41)['effect']['Success']
-    df.to_csv('meuk.csv')
+
+    with open('meuk.csv', 'wb') as f:
+        w = csv.DictWriter(f, context_list[0].keys())
+        w.writeheader()
+        for d in context_list:
+            w.writerow(d)
