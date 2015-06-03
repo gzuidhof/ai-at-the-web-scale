@@ -1,5 +1,6 @@
 import json
 import urllib2
+import pandas as pd
 from credentials import *
 
 BASE_URL = 'http://krabspin.uci.ru.nl'
@@ -43,8 +44,22 @@ def propose_page(i, run_id, header, adtype, color, productid, price):
 
     response = urllib2.urlopen(request_url)
     return json.load(response)
-
+    
+def reward(prices, clicks):
+    """
+    Calculates the reward of a single run.
+    
+    param `prices`: a vector of price_i values
+    param `clicks`: a vector of successes for each i (either 0 or 1)
+    """
+    return np.sum(prices * clicks)
 
 if __name__ == '__main__':
-    print get_context(0,0)
-    print propose_page(0, 0, 5, 'skyscraper', 'blue', 10, 25.41)
+    df = DataFrame()
+    
+    for i in range(5):
+        context = get_context(i = i, run_id = 0)['context']
+        df.append(context)
+        
+        #success = propose_page(i = i, runid = 0, 5, 'skyscraper', 'blue', 10, 25.41)['effect']['Success']
+    df.to_csv('meuk.csv')
