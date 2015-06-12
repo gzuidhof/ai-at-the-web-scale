@@ -5,6 +5,6 @@ COLOR_TYPES = ['green', 'blue', 'red', 'black', 'white']
 PRICE_MAX = 50.0
 PRICE_MIN = 0.0
 
-PRODUCT = range(10,25)
+PRODUCT = range(10,26)
 PRODUCT_MAX = PRODUCT[-1]
 PRODUCT_MIN = PRODUCT[ 0]
