@@ -10,6 +10,8 @@ BASE_URL = 'http://krabspin.uci.ru.nl'
 CONTEXT_ACTION = '/getcontext.json'
 PROPOSAL_ACTION = '/proposePage.json'
 
+N_RETRY_ATTEMPTS = 10
+
 def get_context(i=0,run_id=0):
 
     if i < 0 or i >10000:
@@ -22,8 +24,20 @@ def get_context(i=0,run_id=0):
     params = "?i={0}&runid={1}&teamid={2}&teampw={3}".format(i,run_id,TEAM_ID,PASSWORD)
     request_url = BASE_URL + CONTEXT_ACTION + params
 
-    response = urllib2.urlopen(request_url)
+    attempt_n = 0
+    while attempt_n < N_RETRY_ATTEMPTS:
+        try:
+            response = urllib2.urlopen(request_url)
+            break
+        except:
+            #print 'Failed to get context, retrying ({0})'.format(attempt_n)
+            #print str(e.reason)
+            attempt_n += 1
+    else: #No break
+        print "Failed to get {0}, even after {1} attempts..".format(request_url, N_RETRY_ATTEMPTS)
+        return 'FAIL'
     return json.load(response)
+
 
 def propose_page(i, run_id, header, adtype, color, productid, price):
     if i < 0 or i >10000:
@@ -44,11 +58,11 @@ def propose_page(i, run_id, header, adtype, color, productid, price):
 
     response = urllib2.urlopen(request_url)
     return json.load(response)
-    
+
 def reward(prices, clicks):
     """
     Calculates the reward of a single run.
-    
+
     param `prices`: a vector of price_i values
     param `clicks`: a vector of successes for each i (either 0 or 1)
     """
@@ -56,11 +70,11 @@ def reward(prices, clicks):
 
 if __name__ == '__main__':
     context_list = []
-    
+
     for i in range(10000):
         context = get_context(i = i, run_id = 0)['context']
         context_list.append(context)
-        
+
         #success = propose_page(i = i, runid = 0, 5, 'skyscraper', 'blue', 10, 25.41)['effect']['Success']
 
     with open('meuk.csv', 'wb') as f:
