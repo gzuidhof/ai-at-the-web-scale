@@ -38,9 +38,12 @@ def get_context(i=0,run_id=0):
     return json.load(response)
 
 
-def propose_page(i, run_id, header, adtype, color, productid, price):
+def propose_page(i, run_id, opts):
     if i < 0 or i >10000:
         print "Warning: Possibly out of bounds i {0}".format(i)
+
+
+    header, adtype, color, productid, price = opts
 
     header = int(header)
 

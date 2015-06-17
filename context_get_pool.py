@@ -5,7 +5,7 @@ from threading import Thread
 
 class ContextGetPool():
 
-    def __init__(self, n_workers = 128):
+    def __init__(self, n_workers = 10):
         self.n_workers = n_workers
 
 
