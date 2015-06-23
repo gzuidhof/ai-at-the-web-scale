@@ -30,8 +30,9 @@ class ModelRunner():
 		rewards = []
 		successes = []
 
-		for (id, run_id), context in itertools.izip(context_ids, context_gen):
+		for (run_id, id), context in itertools.izip(context_ids, context_gen):
 			#Perform an action
+			print id, run_id
 			action = self.model.propose(context)
 
 			#Get the response, determine reward
