@@ -57,5 +57,5 @@ class ModelRunner():
 		return success, reward
 
 if __name__ == '__main__':
-	runner = ModelRunner(RandomModel())
+	runner = ModelRunner(LinearModel())
 	runner.run()
