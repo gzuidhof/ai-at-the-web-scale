@@ -109,6 +109,7 @@ class LinearModel(Model):
 		result = minimize(self._linear_model, self.prev_actions, args = (context['context']), method = 'L-BFGS-B', bounds = bounds)
 
 		action = result['x']
+		self.prev_actions = action
 
 		return self._one_hot_reverse('Header', action[10:13]), self._one_hot_reverse('AdType', action[7:10]), self._one_hot_reverse('Color', action[2:7]), np.clip(int(np.round(action[1])), PRODUCT_MIN, PRODUCT_MAX), np.clip(action[0], PRICE_MIN, PRICE_MAX)
 
