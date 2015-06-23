@@ -1,71 +1,61 @@
 from context_get_pool import ContextGetPool
 import api
-import random_model
-import itertools
+from models import *
 
+import itertools
 import numpy as np
 
 class ModelRunner():
-    """
-        Runner of a model, collects contexts and tracks performance
+	"""
+		Runner of a model, collects contexts and tracks performance
 
-        Constructor takes two arguments
-            act: function(context): action
-            "Ask the model to make a choice"
+		Constructor takes two arguments
+			act: function(context): action
+			"Ask the model to make a choice"
 
-            observe: function(context, action, reward): None
-            "Model observes reward of previous action"
-    """
+			observe: function(context, action, reward): None
+			"Model observes reward of previous action"
+	"""
 
-    def __init__(self, act, observe):
-        self.act = act
-        self.observe = observe
+	def __init__(self, model):
+		self.model = model
 
-    def run(self, run_ids = [0], ids = range(100)):
+	def run(self, run_ids = [0], ids = range(100)):
 
-        getter = ContextGetPool()
+		getter = ContextGetPool()
 
-        context_ids = [c for c in itertools.product(run_ids, ids)]
-        context_gen = getter.get(context_ids)
+		context_ids = [c for c in itertools.product(run_ids, ids)]
+		context_gen = getter.get(context_ids)
 
-        rewards = []
-        successes = []
+		rewards = []
+		successes = []
 
-        for (id, run_id), context in itertools.izip(context_ids, context_gen):
-            #Perform an action
-            action = self.act(context)
+		for (id, run_id), context in itertools.izip(context_ids, context_gen):
+			#Perform an action
+			action = self.model.propose(context)
 
-            #Get the response, determine reward
-            response = api.propose_page(id, run_id, action)
-            success, reward = self.extract_reward(response, action)
+			#Get the response, determine reward
+			response = api.propose_page(id, run_id, action)
+			success, reward = self.extract_reward(response, action)
 
-            #Observe the reward
-            self.observe(context, action, reward)
+			#Observe the reward
+			self.model.observe(context, action, reward)
 
-            #Collect some statistics
-            rewards.append(reward)
-            successes.append(success)
-            print reward, np.mean(rewards)
-            print success, np.mean(successes)
+			#Collect some statistics
+			rewards.append(reward)
+			successes.append(success)
+			print "Reward: %.2f, mean reward: %.2f, std reward: %.2f" % (reward, np.mean(rewards), np.std(rewards))
+			print "Success: %i, percent success: %.2f" % (success, np.mean(successes) * 100)
 
-    def extract_reward(self, response, action):
-        #0 or 1
-        success = response['effect']['Success']
+	def extract_reward(self, response, action):
+		#0 or 1
+		success = response['effect']['Success']
 
-        #success * price
-        reward = success * action[-1]
+		#success * price
+		reward = success * action[-1]
 
-        return success, reward
+		return success, reward
 
 if __name__ == '__main__':
-
-    #Simply prints the observation
-    def print_observe(context, action, reward):
-        print '--------'
-        print 'Reward:',reward
-        print 'Action:',action
-        print 'Context:',context
-
-    runner = ModelRunner(random_model.rand_proposal, print_observe)
-
-    runner.run()
+	runner = ModelRunner(RandomModel())
+	runner.run()
