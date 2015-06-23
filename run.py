@@ -20,7 +20,7 @@ class ModelRunner():
 	def __init__(self, model):
 		self.model = model
 
-	def run(self, run_ids = [0], ids = range(100)):
+	def run(self, run_ids = [0], ids = range(10000)):
 
 		getter = ContextGetPool()
 
@@ -32,7 +32,6 @@ class ModelRunner():
 
 		for (run_id, id), context in itertools.izip(context_ids, context_gen):
 			#Perform an action
-			print id, run_id
 			action = self.model.propose(context)
 
 			#Get the response, determine reward
