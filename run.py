@@ -59,5 +59,5 @@ class ModelRunner():
 		return success, reward
 
 if __name__ == '__main__':
-	runner = ModelRunner(BootstrapThompsonSampler())
+	runner = ModelRunner(LinearModel())
 	runner.run()

@@ -34,11 +34,11 @@ class RandomModel(Model):
 
 class LinearModel(Model):
 
-	def __init__(self, num_context_variables = 12, num_action_variables = 13, eta = 0.0001):
+	def __init__(self, num_context_variables = 12, num_action_variables = 14, eta = 0.00001):
 		num_interactions = (num_context_variables + num_action_variables) * (num_context_variables + num_action_variables - 1) / 2
 
-		#self.weights = np.zeros((num_context_variables + num_action_variables + num_interactions))
-		self.weights = np.random.rand(num_context_variables + num_action_variables) * 0.01
+		self.weights = np.zeros((num_context_variables + num_action_variables + num_interactions))
+		#self.weights = np.random.rand(num_context_variables + num_action_variables + num_interactions)
 		self.bias = 0
 
 		# Initialize previous actions array to have warm start when maximizing
@@ -125,6 +125,14 @@ class LinearModel(Model):
 
 	# Override
 	def propose(self, context):
+		self.i += 1
+
+		if self.i < 1000:
+			print "EXPLORATION PHASE %i" % self.i
+			return self.random.propose(context)
+
+		print "EXPLOITATION PHASE %i" % self.i
+
 		bounds = self.bounds[self.num_context_variables:-1]
 
 		# Use previous action weights as initialization to have a warm start
@@ -155,7 +163,9 @@ class LinearModel(Model):
 		error = (reward - fx)
 
 		#information_vector = np.array([v / float(x[1]) for v, x in zip(information_vector, self.bounds)])
-		information_vector[information_vector > 0] = 1
+		#information_vector[information_vector > 0] = 1
+		#information_vector[information_vector < 0] = -1
+		information_vector = np.clip(information_vector, -1, 1)
 
 		# Ridge
 		#error -= np.sum(self.weights) * np.sign(error)
@@ -170,12 +180,12 @@ class LinearModel(Model):
 		self.print_weights()
 
 	def print_weights(self):
-		weight_labels = ['age', 'OSX', 'Windows', 'Linux', 'mobile', 'Google', 'Bing', 'NA ref', 'EN', 'NL', 'GE', 'NA lang', 'price', 'productid', 'green', 'blue', 'red', 'black', 'white', 'skyscraper', 'square', 'banner', '5', '15', '35']
+		weight_labels = ['age', 'OSX', 'Windows', 'Linux', 'mobile', 'Google', 'Bing', 'NA ref', 'EN', 'NL', 'GE', 'NA lang', 'price', 'productid', 'green', 'blue', 'red', 'black', 'white', 'skyscraper', 'square', 'banner', '5', '15', '35', 'price_sq']
 
 		for i, x in enumerate(weight_labels):
 			print "%s: %.5f" % (x, self.weights[i])
 
-		x = len(weight_labels) + 1
+		x = len(weight_labels) 
 		for i in range(0, len(weight_labels)):
 			for j in range(i+1, len(weight_labels)):
 				print "%s, %s: %.5f" % (weight_labels[i], weight_labels[j], self.weights[x])
