@@ -34,8 +34,9 @@ class RandomModel(Model):
 
 class LinearModel(Model):
 
-	def __init__(self, num_context_variables = 12, num_action_variables = 13, eta = 0.01):
+	def __init__(self, num_context_variables = 12, num_action_variables = 14, eta = 0.00001):
 		self.weights = np.random.rand(num_context_variables + num_action_variables)
+		#self.weights = np.zeros(num_context_variables + num_action_variables)
 
 		# Initialize previous actions array to have warm start when maximizing
 		# In order: [price, productid, color, adtype, header]
@@ -49,7 +50,7 @@ class LinearModel(Model):
 
 		self.eta = eta
 
-		self.bounds = [(AGE_MIN, AGE_MAX), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (PRICE_MIN, PRICE_MAX), (PRODUCT_MIN, PRODUCT_MAX), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1)]
+		self.bounds = [(AGE_MIN, AGE_MAX), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (PRICE_MIN, PRICE_MAX), (PRODUCT_MIN, PRODUCT_MAX), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (PRICE_MIN**2, PRICE_MAX**2)]
 
 	def _one_hot(self, context_key, context_value):
 		if context_key == 'Agent':
@@ -94,6 +95,7 @@ class LinearModel(Model):
 
 		# Create information vector by concatenating the context with the actions
 		information_vector = np.concatenate((context_vector, actions))
+		information_vector = np.concatenate((information_vector, [actions[0]**2]))
 
 		# Take inner product of weights and information_vector
 		y = np.inner(self.weights, information_vector)
@@ -108,7 +110,7 @@ class LinearModel(Model):
 
 	# Override
 	def propose(self, context):
-		bounds = self.bounds[self.num_context_variables:]
+		bounds = self.bounds[self.num_context_variables:-1]
 		# Use previous action weights as initialization to have a warm start
 		result = minimize(self._linear_model, self.prev_actions, args = (context['context']), method = 'L-BFGS-B', bounds = bounds)
 
@@ -136,7 +138,8 @@ class LinearModel(Model):
 		# SSE grad
 		error = (reward - fx)
 
-		information_vector = np.array([v / float(x[1]) for v, x in zip(information_vector, self.bounds)])
+		#information_vector = np.array([v / float(x[1]) for v, x in zip(information_vector, self.bounds)])
+		information_vector[information_vector > 0] = 1
 
 		# Ridge
 		#error += np.sum(self.weights**2)

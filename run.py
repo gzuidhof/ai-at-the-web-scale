@@ -21,7 +21,7 @@ class ModelRunner():
 	def __init__(self, model):
 		self.model = model
 
-	def run(self, run_ids = [0], ids = range(10000)):
+	def run(self, run_ids = [0], ids = [0]*100000):
 
 		getter = ContextGetPool()
 
@@ -49,7 +49,7 @@ class ModelRunner():
 			#Collect some statistics
 			rewards.append(reward)
 			successes.append(success)
-			print "Reward: %.2f, mean reward: %.2f, std reward: %.2f" % (reward, np.mean(rewards), np.std(rewards))
+			print "Reward: %.2f, mean reward: %.2f, std reward: %.2f" % (reward, np.mean(rewards), np.std(rewards)), '(%.2f)'%action[-1]
 			print "Success: %i, percent success: %.2f" % (success, np.mean(successes) * 100)
 
 	def extract_reward(self, response, action):

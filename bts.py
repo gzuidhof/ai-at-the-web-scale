@@ -4,7 +4,7 @@ from models import *
 class BootstrapThompsonSampler(Model):
 
     def __init__(self):
-        self.models = [LinearModel() for _ in range(1000)]
+        self.models = [LinearModel() for _ in range(1)]
 
 
     def propose(self, context):
