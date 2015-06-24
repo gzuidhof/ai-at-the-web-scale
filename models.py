@@ -34,7 +34,7 @@ class RandomModel(Model):
 
 class LinearModel(Model):
 
-	def __init__(self, num_context_variables = 12, num_action_variables = 13, eta = 0.0001):
+	def __init__(self, num_context_variables = 12, num_action_variables = 13, eta = 0.01):
 		self.weights = np.random.rand(num_context_variables + num_action_variables)
 
 		# Initialize previous actions array to have warm start when maximizing
@@ -48,6 +48,8 @@ class LinearModel(Model):
 		self.num_action_variables = num_action_variables
 
 		self.eta = eta
+
+		self.bounds = [(AGE_MIN, AGE_MAX), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (PRICE_MIN, PRICE_MAX), (PRODUCT_MIN, PRODUCT_MAX), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1)]
 
 	def _one_hot(self, context_key, context_value):
 		if context_key == 'Agent':
@@ -106,7 +108,7 @@ class LinearModel(Model):
 
 	# Override
 	def propose(self, context):
-		bounds = [(PRICE_MIN, PRICE_MAX), (PRODUCT_MIN, PRODUCT_MAX), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1)]
+		bounds = self.bounds[self.num_context_variables:]
 		# Use previous action weights as initialization to have a warm start
 		result = minimize(self._linear_model, self.prev_actions, args = (context['context']), method = 'L-BFGS-B', bounds = bounds)
 
@@ -134,8 +136,10 @@ class LinearModel(Model):
 		# SSE grad
 		error = (reward - fx)
 
+		information_vector = np.array([v / float(x[1]) for v, x in zip(information_vector, self.bounds)])
+
 		# Ridge
-		error += np.sum(self.weights**2)
+		#error += np.sum(self.weights**2)
 
 		# Update weights
 		self.weights += self.eta * error * information_vector

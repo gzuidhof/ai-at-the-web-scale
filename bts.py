@@ -14,5 +14,7 @@ class BootstrapThompsonSampler(Model):
         #super(BootstrapThompsonSampler, self).observe(context, action, reward)
 
         for model in self.models:
-            if np.random.rand(1) > 0.5:
-                model.observe(context, action, reward)
+            #if np.random.rand(1) > 0.5:
+            model.observe(context, action, reward)
+
+        print self.models[0].weights
