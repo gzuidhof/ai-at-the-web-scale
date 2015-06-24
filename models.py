@@ -16,7 +16,6 @@ class Model(object):
 		print 'Action:',action
 		print 'Context:',context
 
-
 class RandomModel(Model):
 	#Override
 	def propose(self, context):
@@ -29,19 +28,23 @@ class RandomModel(Model):
 
 		return header, adtype, color, product_id, price
 
+	def observe(self, context, action, reward):
+		pass
+
 
 class LinearModel(Model):
 
 	def __init__(self, num_context_variables = 12, num_action_variables = 13, eta = 0.0001):
 		num_interactions = (num_context_variables + num_action_variables) * (num_context_variables + num_action_variables - 1) / 2
-		self.weights = np.zeros((num_context_variables + num_action_variables + num_interactions))
+
+		#self.weights = np.zeros((num_context_variables + num_action_variables + num_interactions))
+		self.weights = np.random.rand(num_context_variables + num_action_variables) * 0.01
+		self.bias = 0
 
 		# Initialize previous actions array to have warm start when maximizing
 		# In order: [price, productid, color, adtype, header]
 		# where color is green, adtype is skyscraper and header is 15
 		self.prev_actions = np.array([5.00, 18, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0])
-
-		self.bias = 0
 
 		self.num_context_variables = num_context_variables
 		self.num_action_variables = num_action_variables
@@ -49,6 +52,8 @@ class LinearModel(Model):
 		self.eta = eta
 		self.i = 0
 		self.random = RandomModel()
+
+		self.bounds = [(AGE_MIN, AGE_MAX), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (PRICE_MIN, PRICE_MAX), (PRODUCT_MIN, PRODUCT_MAX), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (PRICE_MIN**2, PRICE_MAX**2)]
 
 	def _one_hot(self, context_key, context_value):
 		if context_key == 'Agent':
@@ -102,6 +107,7 @@ class LinearModel(Model):
 
 		# Create information vector by concatenating the context with the actions
 		information_vector = np.concatenate((context_vector, actions))
+		information_vector = np.concatenate((information_vector, [actions[0]**2]))
 
 		# Interactions
 		information_vector = np.concatenate((information_vector, self._build_interactions(information_vector)))
@@ -119,15 +125,8 @@ class LinearModel(Model):
 
 	# Override
 	def propose(self, context):
-		self.i += 1
-		
-		if self.i < 100:
-			print "EXPLORATION PHASE %i" % self.i
-			return self.random.propose(context)
+		bounds = self.bounds[self.num_context_variables:-1]
 
-		print "EXPLOITATION PHASE %i" % self.i
-
-		bounds = [(PRICE_MIN, PRICE_MAX), (PRODUCT_MIN, PRODUCT_MAX), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1)]
 		# Use previous action weights as initialization to have a warm start
 		result = minimize(self._linear_model, self.prev_actions, args = (context['context']), method = 'L-BFGS-B', bounds = bounds, options = {'maxiter': 1000})
 
@@ -138,7 +137,7 @@ class LinearModel(Model):
 
 	def observe(self, context, action, reward):
 		# Print to screen in super method
-		super(LinearModel, self).observe(context, action, reward)
+		#super(LinearModel, self).observe(context, action, reward)
 
 		action_vector = []
 
@@ -155,11 +154,11 @@ class LinearModel(Model):
 		# SSE grad
 		error = (reward - fx)
 
+		#information_vector = np.array([v / float(x[1]) for v, x in zip(information_vector, self.bounds)])
+		information_vector[information_vector > 0] = 1
+
 		# Ridge
 		#error -= np.sum(self.weights) * np.sign(error)
-
-		# Set numerical/ordinal variables to 1 to prevent them from updating faster than dummy variables
-		information_vector = np.clip(information_vector, 0, 1)
 
 		# Update weights and bias
 		self.weights += self.eta * error * information_vector
@@ -176,8 +175,7 @@ class LinearModel(Model):
 		for i, x in enumerate(weight_labels):
 			print "%s: %.5f" % (x, self.weights[i])
 
-
-		x = 25
+		x = len(weight_labels) + 1
 		for i in range(0, len(weight_labels)):
 			for j in range(i+1, len(weight_labels)):
 				print "%s, %s: %.5f" % (weight_labels[i], weight_labels[j], self.weights[x])

@@ -1,5 +1,6 @@
 from context_get_pool import ContextGetPool
 import api
+from bts import *
 from models import *
 
 import itertools
@@ -20,7 +21,7 @@ class ModelRunner():
 	def __init__(self, model):
 		self.model = model
 
-	def run(self, run_ids = [0], ids = range(10000)):
+	def run(self, run_ids = [0], ids = [0]*100000):
 
 		getter = ContextGetPool()
 
@@ -34,6 +35,7 @@ class ModelRunner():
 			#Perform an action
 			action = self.model.propose(context)
 
+
 			#Get the response, determine reward
 			response = api.propose_page(id, run_id, action)
 			success, reward = self.extract_reward(response, action)
@@ -44,7 +46,7 @@ class ModelRunner():
 			#Collect some statistics
 			rewards.append(reward)
 			successes.append(success)
-			print "Reward: %.2f, mean reward: %.2f, std reward: %.2f" % (reward, np.mean(rewards), np.std(rewards))
+			print "Reward: %.2f, mean reward: %.2f, std reward: %.2f" % (reward, np.mean(rewards), np.std(rewards)), '(%.2f)'%action[-1]
 			print "Success: %i, percent success: %.2f" % (success, np.mean(successes) * 100)
 
 	def extract_reward(self, response, action):
@@ -57,5 +59,5 @@ class ModelRunner():
 		return success, reward
 
 if __name__ == '__main__':
-	runner = ModelRunner(LinearModel())
+	runner = ModelRunner(BootstrapThompsonSampler())
 	runner.run()
