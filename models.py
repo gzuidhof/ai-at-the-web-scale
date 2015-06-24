@@ -16,7 +16,6 @@ class Model(object):
 		print 'Action:',action
 		print 'Context:',context
 
-
 class RandomModel(Model):
 	#Override
 	def propose(self, context):
@@ -28,6 +27,9 @@ class RandomModel(Model):
 		price = random.uniform(PRICE_MIN, PRICE_MAX)
 
 		return header, adtype, color, product_id, price
+
+	def observe(self, context, action, reward):
+		pass
 
 
 class LinearModel(Model):
@@ -115,7 +117,7 @@ class LinearModel(Model):
 
 	def observe(self, context, action, reward):
 		# Print to screen in super method
-		super(LinearModel, self).observe(context, action, reward)
+		#super(LinearModel, self).observe(context, action, reward)
 
 		action_vector = []
 
@@ -137,5 +139,5 @@ class LinearModel(Model):
 
 		# Update weights
 		self.weights += self.eta * error * information_vector
-		print reward, fx
-		print error, self.weights
+		#print reward, fx
+		#print error, self.weights
