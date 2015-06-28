@@ -1,5 +1,6 @@
 from constants import *
 
+import encode
 import random
 import time
 import numpy as np
@@ -63,20 +64,6 @@ class LinearModel(Model):
 
 		self.weights = np.load("weights.npy")
 
-	def _one_hot(self, context_key, context_value):
-		if context_key == 'Agent':
-			return [int(context_value == 'OSX'), int(context_value == 'Windows'), int(context_value == 'Linux'), int(context_value == 'mobile')]
-		if context_key == 'Referer':
-			return [int(context_value == 'Google'), int(context_value == 'Bing'), int(context_value == 'NA')]
-		if context_key == 'Language':
-			return [int(context_value == 'EN'), int(context_value == 'NL'), int(context_value == 'GE'), int(context_value == 'NA')]
-		if context_key == 'Color':
-			return [int(context_value == 'green'), int(context_value == 'blue'), int(context_value == 'red'), int(context_value == 'black'), int(context_value == 'white')]
-		if context_key == 'AdType':
-			return [int(context_value == 'skyscraper'), int(context_value == 'square'), int(context_value == 'banner')]
-		if context_key == 'Header':
-			return [int(context_value == 5), int(context_value == 15), int(context_value == 35)]
-
 	def _one_hot_reverse(self, action_key, action_values):
 		m = np.argmax(action_values)
 
@@ -101,17 +88,7 @@ class LinearModel(Model):
 		# Where y is the reward (to be maximized), b_0 through b_n are the context weights and b_{n+1} through b_{m-n} are the action weights
 
 		# First, transform context to vector
-		context_vector = []
-
-		# Append numerical values
-		context_vector.append(context['Age'])
-
-		# One-hot encoding
-		context_vector += self._one_hot('Agent', context['Agent'])
-		context_vector += self._one_hot('Referer', context['Referer'])
-		context_vector += self._one_hot('Language', context['Language'])
-
-		context_vector = np.array(context_vector)
+		context_vector = encode.encode_context(context)
 
 		# Create information vector by concatenating the context with the actions
 		information_vector = np.concatenate((context_vector, actions))
@@ -155,14 +132,7 @@ class LinearModel(Model):
 		# Print to screen in super method
 		#super(LinearModel, self).observe(context, action, reward)
 
-		action_vector = []
-
-		action_vector.append(action[4]) # price
-		action_vector.append(action[3]) # productid
-
-		action_vector += self._one_hot('Color', action[2])
-		action_vector += self._one_hot('AdType', action[1])
-		action_vector += self._one_hot('Header', action[0])
+		action_vector = encode.encode_action(action)
 
 		# Predicted reward
 		fx, information_vector = self._linear_function(action_vector, context['context'])
@@ -195,7 +165,7 @@ class LinearModel(Model):
 
 		dic = OrderedDict()
 
-		x = len(weight_labels) 
+		x = len(weight_labels)
 		for i in range(0, len(weight_labels)):
 			for j in range(i+1, len(weight_labels)):
 				key = weight_labels[i] + "," + weight_labels[j]
@@ -205,7 +175,7 @@ class LinearModel(Model):
 				x += 1
 
 		foo = OrderedDict(sorted(dic.iteritems(), key=lambda x: x[1]))
-		
+
 		for x in foo:
 			if x == "price":
 				print x, foo[x]
