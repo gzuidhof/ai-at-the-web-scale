@@ -64,16 +64,6 @@ class LinearModel(Model):
 
 		self.weights = np.load("weights.npy")
 
-	def _one_hot_reverse(self, action_key, action_values):
-		m = np.argmax(action_values)
-
-		if action_key == 'Header':
-			return HEADER_TYPES[m]
-		if action_key == 'AdType':
-			return AD_TYPES[m]
-		if action_key == 'Color':
-			return COLOR_TYPES[m]
-
 	def _build_interactions(self, vector):
 		interactions = []
 
@@ -126,7 +116,14 @@ class LinearModel(Model):
 		action = result['x']
 		self.prev_actions = action
 
-		return self._one_hot_reverse('Header', action[10:13]), self._one_hot_reverse('AdType', action[7:10]), self._one_hot_reverse('Color', action[2:7]), np.clip(int(np.round(action[1])), PRODUCT_MIN, PRODUCT_MAX), np.clip(action[0], PRICE_MIN, PRICE_MAX)
+		header = encode.one_hot_reverse('Header', action[10:13])
+		ad_type = encode.one_hot_reverse('AdType', action[7:10])
+		color = encode.one_hot_reverse('Color', action[2:7])
+
+		product = np.clip(int(np.round(action[1])), PRODUCT_MIN, PRODUCT_MAX)
+		price = np.clip(action[0], PRICE_MIN, PRICE_MAX)
+
+		return header, ad_type, color, product, price
 
 	def observe(self, context, action, reward):
 		# Print to screen in super method

@@ -40,11 +40,6 @@ def one_hot(context_key, value):
     return v
 
 def one_hot_reverse(action_key, action_values):
-	m = np.argmax(action_values)
-
-	if action_key == 'Header':
-		return HEADER_TYPES[m]
-	if action_key == 'AdType':
-		return AD_TYPES[m]
-	if action_key == 'Color':
-		return COLOR_TYPES[m]
+    m = np.argmax(action_values)
+    possible_values = OPTIONS_FOR_FIELD[action_key]
+    return possible_values[m]
