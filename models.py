@@ -56,7 +56,6 @@ class LinearModel(Model):
 		self.eta = eta
 		self.i = 0
 		self.random = RandomModel()
-		print (len(COLOR_TYPES)-1+len(AD_TYPES)-1+len(HEADER_TYPES)-1)
 
 		context_bounds = [(AGE_MIN, AGE_MAX)] + \
 						[(0,1)]* (len(COLOR_TYPES)+len(AD_TYPES)+len(HEADER_TYPES))
