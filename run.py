@@ -2,6 +2,7 @@ from context_get_pool import ContextGetPool
 import api
 from bts import *
 from models import *
+import plotta
 
 import itertools
 import numpy as np
@@ -22,6 +23,7 @@ class ModelRunner():
 
 	def __init__(self, model):
 		self.model = model
+		self.job = plotta.Job(type(model).__name__)
 
 	def run(self, run_ids = [1], ids = range(1000)):
 
@@ -34,6 +36,10 @@ class ModelRunner():
 		successes = []
 		mean_rewards = []
 
+		self.job.start()
+		mean_stream = self.job.add_stream('Mean reward')
+
+		i = 0
 		for (run_id, id), context in itertools.izip(context_ids, context_gen):
 			#Perform an action
 			action = self.model.propose(context)
@@ -50,8 +56,12 @@ class ModelRunner():
 			rewards.append(reward)
 			successes.append(success)
 			mean_rewards.append(np.mean(rewards))
+
+			mean_stream.append(i, mean_rewards[-1])
+
 			print "Reward: %.2f, mean reward: %.2f, std reward: %.2f" % (reward, np.mean(rewards), np.std(rewards)), '(%.2f)'%action[-1]
 			print "Success: %i, percent success: %.2f" % (success, np.mean(successes) * 100)
+			i+=1
 
 		plt.plot(ids, mean_rewards)
 		plt.show()
