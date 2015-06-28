@@ -58,7 +58,17 @@ def propose_page(i, run_id, opts):
     params += "&header={0}&adtype={1}&color={2}&productid={3}&price={4}".format(header, adtype, color, productid, price)
     request_url = BASE_URL + PROPOSAL_ACTION + params
 
-    response = urllib2.urlopen(request_url)
+    attempt_n = 0
+    while attempt_n < N_RETRY_ATTEMPTS:
+            try:
+                response = urllib2.urlopen(request_url)
+                break
+            except:
+                attempt_n += 1
+    else:
+        print "Failed to get {0}, even after {1} attempts..".format(request_url, N_RETRY_ATTEMPTS)
+        return 'FAIL'
+
     return json.load(response)
 
 def reward(prices, clicks):

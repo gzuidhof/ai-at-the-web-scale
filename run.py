@@ -6,6 +6,8 @@ from models import *
 import itertools
 import numpy as np
 
+import matplotlib.pyplot as plt
+
 class ModelRunner():
 	"""
 		Runner of a model, collects contexts and tracks performance
@@ -21,7 +23,7 @@ class ModelRunner():
 	def __init__(self, model):
 		self.model = model
 
-	def run(self, run_ids = [0], ids = [0]*100000):
+	def run(self, run_ids = [1], ids = range(1000)):
 
 		getter = ContextGetPool()
 
@@ -30,6 +32,7 @@ class ModelRunner():
 
 		rewards = []
 		successes = []
+		mean_rewards = []
 
 		for (run_id, id), context in itertools.izip(context_ids, context_gen):
 			#Perform an action
@@ -46,8 +49,12 @@ class ModelRunner():
 			#Collect some statistics
 			rewards.append(reward)
 			successes.append(success)
+			mean_rewards.append(np.mean(rewards))
 			print "Reward: %.2f, mean reward: %.2f, std reward: %.2f" % (reward, np.mean(rewards), np.std(rewards)), '(%.2f)'%action[-1]
 			print "Success: %i, percent success: %.2f" % (success, np.mean(successes) * 100)
+
+		plt.plot(ids, mean_rewards)
+		plt.show()
 
 	def extract_reward(self, response, action):
 		#0 or 1

@@ -5,6 +5,10 @@ import time
 import numpy as np
 from scipy.optimize import minimize
 
+from collections import OrderedDict
+
+import sklearn.linear_model
+
 
 class Model(object):
 	def propose(self, context):
@@ -54,6 +58,10 @@ class LinearModel(Model):
 		self.random = RandomModel()
 
 		self.bounds = [(AGE_MIN, AGE_MAX), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (PRICE_MIN, PRICE_MAX), (PRODUCT_MIN, PRODUCT_MAX), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (PRICE_MIN**2, PRICE_MAX**2)]
+		self.vectors = []
+		self.rewards = []
+
+		self.weights = np.load("weights.npy")
 
 	def _one_hot(self, context_key, context_value):
 		if context_key == 'Agent':
@@ -115,7 +123,7 @@ class LinearModel(Model):
 		# Take inner product of weights and information_vector
 		y = self.bias + np.inner(self.weights, information_vector)
 
-		return y, information_vector
+		return 2**y, information_vector
 
 	def _linear_model(self, actions, context):
 		y, _ = self._linear_function(actions, context)
@@ -127,7 +135,7 @@ class LinearModel(Model):
 	def propose(self, context):
 		self.i += 1
 
-		if self.i < 1000:
+		if self.i < 1:
 			print "EXPLORATION PHASE %i" % self.i
 			return self.random.propose(context)
 
@@ -158,17 +166,17 @@ class LinearModel(Model):
 
 		# Predicted reward
 		fx, information_vector = self._linear_function(action_vector, context['context'])
+		self.vectors.append(information_vector)
+		self.rewards.append(reward)
+
+		np.save("vectors.npy", np.array(self.vectors))
+		np.save("rewards.npy", np.array(self.rewards))
 
 		# SSE grad
 		error = (reward - fx)
 
 		#information_vector = np.array([v / float(x[1]) for v, x in zip(information_vector, self.bounds)])
-		#information_vector[information_vector > 0] = 1
-		#information_vector[information_vector < 0] = -1
 		information_vector = np.clip(information_vector, -1, 1)
-
-		# Ridge
-		#error -= np.sum(self.weights) * np.sign(error)
 
 		# Update weights and bias
 		self.weights += self.eta * error * information_vector
@@ -185,10 +193,21 @@ class LinearModel(Model):
 		for i, x in enumerate(weight_labels):
 			print "%s: %.5f" % (x, self.weights[i])
 
+		dic = OrderedDict()
+
 		x = len(weight_labels) 
 		for i in range(0, len(weight_labels)):
 			for j in range(i+1, len(weight_labels)):
-				print "%s, %s: %.5f" % (weight_labels[i], weight_labels[j], self.weights[x])
+				key = weight_labels[i] + "," + weight_labels[j]
+				dic[key] = self.weights[x]
+
+				#print "%s, %s: %.5f" % (weight_labels[i], weight_labels[j], self.weights[x])
 				x += 1
+
+		foo = OrderedDict(sorted(dic.iteritems(), key=lambda x: x[1]))
+		
+		for x in foo:
+			if x == "price":
+				print x, foo[x]
 
 		print "Bias: %.5f" % self.bias
