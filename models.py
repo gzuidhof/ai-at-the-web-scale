@@ -56,9 +56,18 @@ class LinearModel(Model):
 		self.eta = eta
 		self.i = 0
 		self.random = RandomModel()
+		print (len(COLOR_TYPES)-1+len(AD_TYPES)-1+len(HEADER_TYPES)-1)
 
+		context_bounds = [(AGE_MIN, AGE_MAX)] + \
+						[(0,1)]* (len(COLOR_TYPES)+len(AD_TYPES)+len(HEADER_TYPES))
 
-		self.bounds = [(AGE_MIN, AGE_MAX), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (PRICE_MIN, PRICE_MAX), (PRODUCT_MIN, PRODUCT_MAX), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (PRICE_MIN**2, PRICE_MAX**2)]
+		action_bounds = [(PRICE_MIN, PRICE_MAX), (PRODUCT_MIN, PRODUCT_MAX)] + \
+		 				[(0,1)]* (len(AGENTS)+len(REFERERS)+len(LANGUAGES)) + \
+						[(PRICE_MIN**2, PRICE_MAX**2)]
+
+		self.bounds = context_bounds + action_bounds
+		self.context_bounds = context_bounds
+		self.action_bounds = action_bounds
 		self.vectors = []
 		self.rewards = []
 
@@ -108,7 +117,7 @@ class LinearModel(Model):
 
 		print "EXPLOITATION PHASE %i" % self.i
 
-		bounds = self.bounds[self.num_context_variables:-1]
+		bounds = self.action_bounds[:-1]
 
 		# Use previous action weights as initialization to have a warm start
 		result = minimize(self._linear_model, self.prev_actions, args = (context['context']), method = 'L-BFGS-B', bounds = bounds, options = {'maxiter': 1000})
