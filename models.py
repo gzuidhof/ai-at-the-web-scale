@@ -123,7 +123,7 @@ class LinearModel(Model):
 		# Take inner product of weights and information_vector
 		y = self.bias + np.inner(self.weights, information_vector)
 
-		return 2**y, information_vector
+		return y, information_vector
 
 	def _linear_model(self, actions, context):
 		y, _ = self._linear_function(actions, context)
