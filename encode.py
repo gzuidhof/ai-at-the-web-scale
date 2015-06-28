@@ -35,6 +35,7 @@ def encode_action(action):
 def one_hot(context_key, value):
     possible_values = OPTIONS_FOR_FIELD[context_key]
 
+    #print possible_values, value
     v = np.zeros(len(possible_values))
     v[possible_values.index(value)] = 1
     return v

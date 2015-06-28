@@ -15,11 +15,18 @@ def one_hot_reverse(action_key, action_values):
 
 
 def decode_action(action):
-    header = one_hot_reverse('Header', action[10:13])
-    ad_type = one_hot_reverse('AdType', action[7:10])
-    color = one_hot_reverse('Color', action[2:7])
-
-    product = np.clip(int(np.round(action[1])), PRODUCT_MIN, PRODUCT_MAX)
     price = np.clip(action[0], PRICE_MIN, PRICE_MAX)
+    product = np.clip(int(np.round(action[1])), PRODUCT_MIN, PRODUCT_MAX)
+
+    cur = 2 #Cursor
+    n_color = len(COLOR_TYPES)
+    n_ad_types = len(AD_TYPES)
+    n_headers = len(HEADER_TYPES)
+
+    color = one_hot_reverse('Color', action[cur:cur+n_color])
+    cur += n_color
+    ad_type = one_hot_reverse('AdType', action[cur:cur+n_ad_types])
+    cur += n_ad_types
+    header = one_hot_reverse('Header', action[cur:cur+n_headers])
 
     return header, ad_type, color, product, price
