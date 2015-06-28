@@ -1,6 +1,7 @@
 from constants import *
 
 import encode
+import decode
 import random
 import time
 import numpy as np
@@ -36,7 +37,6 @@ class RandomModel(Model):
 	def observe(self, context, action, reward):
 		pass
 
-
 class LinearModel(Model):
 
 	def __init__(self, num_context_variables = 12, num_action_variables = 14, eta = 0.00001):
@@ -57,6 +57,7 @@ class LinearModel(Model):
 		self.eta = eta
 		self.i = 0
 		self.random = RandomModel()
+
 
 		self.bounds = [(AGE_MIN, AGE_MAX), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (PRICE_MIN, PRICE_MAX), (PRODUCT_MIN, PRODUCT_MAX), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (PRICE_MIN**2, PRICE_MAX**2)]
 		self.vectors = []
@@ -116,14 +117,7 @@ class LinearModel(Model):
 		action = result['x']
 		self.prev_actions = action
 
-		header = encode.one_hot_reverse('Header', action[10:13])
-		ad_type = encode.one_hot_reverse('AdType', action[7:10])
-		color = encode.one_hot_reverse('Color', action[2:7])
-
-		product = np.clip(int(np.round(action[1])), PRODUCT_MIN, PRODUCT_MAX)
-		price = np.clip(action[0], PRICE_MIN, PRICE_MAX)
-
-		return header, ad_type, color, product, price
+		return decode.decode_action(action)
 
 	def observe(self, context, action, reward):
 		# Print to screen in super method

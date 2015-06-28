@@ -38,15 +38,3 @@ def one_hot(context_key, value):
     v = np.zeros(len(possible_values))
     v[possible_values.index(value)] = 1
     return v
-
-def one_hot_reverse(action_key, action_values):
-    #Select first
-    #selection = np.argmax(action_values)
-
-    #Select random
-    one_indices = np.flatnonzero(action_values)
-    selection = np.random.choice(one_indices)
-
-
-    possible_values = OPTIONS_FOR_FIELD[action_key]
-    return possible_values[selection]
