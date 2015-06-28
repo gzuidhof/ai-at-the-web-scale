@@ -5,9 +5,8 @@ import decode
 import random
 import time
 import numpy as np
+import util
 from scipy.optimize import minimize
-
-from collections import OrderedDict
 
 import sklearn.linear_model
 
@@ -146,29 +145,4 @@ class LinearModel(Model):
 		# Print diagnostics
 		print "Predicted reward: %.2f" % fx
 		print "Error: %.2f" % error
-		self.print_weights()
-
-	def print_weights(self):
-		weight_labels = ['age', 'OSX', 'Windows', 'Linux', 'mobile', 'Google', 'Bing', 'NA ref', 'EN', 'NL', 'GE', 'NA lang', 'price', 'productid', 'green', 'blue', 'red', 'black', 'white', 'skyscraper', 'square', 'banner', '5', '15', '35', 'price_sq']
-
-		for i, x in enumerate(weight_labels):
-			print "%s: %.5f" % (x, self.weights[i])
-
-		dic = OrderedDict()
-
-		x = len(weight_labels)
-		for i in range(0, len(weight_labels)):
-			for j in range(i+1, len(weight_labels)):
-				key = weight_labels[i] + "," + weight_labels[j]
-				dic[key] = self.weights[x]
-
-				#print "%s, %s: %.5f" % (weight_labels[i], weight_labels[j], self.weights[x])
-				x += 1
-
-		foo = OrderedDict(sorted(dic.iteritems(), key=lambda x: x[1]))
-
-		for x in foo:
-			if x == "price":
-				print x, foo[x]
-
-		print "Bias: %.5f" % self.bias
+		util.print_weights(self.bias, self.weights)
