@@ -92,5 +92,5 @@ class Scraper():
 
 
 if __name__ == '__main__':
-    scraper = Scraper(10)
-    scraper.go(range(1000))
+    scraper = Scraper(100)
+    scraper.go(range(5000))

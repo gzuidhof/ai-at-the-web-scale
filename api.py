@@ -10,7 +10,7 @@ BASE_URL = 'http://krabspin.uci.ru.nl'
 CONTEXT_ACTION = '/getcontext.json'
 PROPOSAL_ACTION = '/proposePage.json'
 
-N_RETRY_ATTEMPTS = 10
+N_RETRY_ATTEMPTS = 100000
 
 def get_context(i=0,run_id=0):
 
