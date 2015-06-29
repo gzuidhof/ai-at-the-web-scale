@@ -1,6 +1,6 @@
 HEADER_TYPES = [5, 15, 35]
 AD_TYPES = ['skyscraper', 'square', 'banner']
-COLOR_TYPES = ['green', 'blue', 'red','black', 'white']
+COLOR_TYPES = ['green', 'blue', 'red', 'white']
 
 #Context possibilities
 AGENTS = ['OSX', 'Windows', 'Linux', 'mobile']

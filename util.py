@@ -1,6 +1,9 @@
 from collections import OrderedDict
+from constants import *
+
 def print_weights(bias, weights):
-    weight_labels = ['age', 'OSX', 'Windows', 'Linux', 'mobile', 'Google', 'Bing', 'NA ref', 'EN', 'NL', 'GE', 'NA lang', 'price', 'productid', 'green', 'blue', 'red', 'black', 'white', 'skyscraper', 'square', 'banner', '5', '15', '35', 'price_sq']
+    weight_labels = ['age'] + AGENTS + REFERERS + LANGUAGES + ['price','productid'] + COLOR_TYPES + AD_TYPES + HEADER_TYPES + ['price_sq']
+    weight_labels = [str(x) for x in weight_labels]
 
     for i, x in enumerate(weight_labels):
         print "%s: %.5f" % (x, weights[i])

@@ -38,4 +38,6 @@ def one_hot(context_key, value):
     #print possible_values, value
     v = np.zeros(len(possible_values))
     v[possible_values.index(value)] = 1
+
+    assert len(v) == len(possible_values)
     return v

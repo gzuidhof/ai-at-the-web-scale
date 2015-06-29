@@ -7,6 +7,11 @@ def one_hot_reverse(action_key, action_values):
 
     #Select random
     one_indices = np.flatnonzero(action_values)
+
+    #No ones, go full random
+    if len(one_indices) == 0:
+        one_indices = [np.random.choice(range(len(action_values)))]
+
     selection = np.random.choice(one_indices)
 
 
