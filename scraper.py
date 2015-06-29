@@ -25,7 +25,7 @@ class Scraper():
             self.results.put(task)
 
     def _scrape_run_id(self, run_id):
-        ids = range(1000)
+        ids = range(10000)
         getter = ContextGetPool(n_workers=1)
         model = models.RandomModel()
         context_ids = [(id, run_id) for id in ids]
@@ -82,7 +82,7 @@ class Scraper():
 
         for i in xrange(len(run_ids)):
             task = self.results.get()
-            print "run_id\"" + str(task) + "\" DONE!", i
+            print "run_id\"" + str(task) + "\" DONE! (n_done={0})".format(i+1)
             self.results.task_done()
 
         #Done
@@ -92,5 +92,5 @@ class Scraper():
 
 
 if __name__ == '__main__':
-    scraper = Scraper(1)
-    scraper.go([0])
+    scraper = Scraper(10)
+    scraper.go(range(1000))
