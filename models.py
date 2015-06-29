@@ -7,6 +7,7 @@ import time
 import numpy as np
 import util
 from scipy.optimize import minimize
+import os.path
 
 import sklearn.linear_model
 
@@ -38,17 +39,23 @@ class RandomModel(Model):
 
 class LinearModel(Model):
 
-	def __init__(self, num_context_variables = 12, num_action_variables = 14, eta = 0.00001):
+	def __init__(self, eta = 0.00001):
+
+		num_context_variables = 1+ len(AGENTS)+len(REFERERS)+len(LANGUAGES)
+		num_action_variables = 2 + len(COLOR_TYPES)+len(AD_TYPES)+len(HEADER_TYPES) + 1
+
 		num_interactions = (num_context_variables + num_action_variables) * (num_context_variables + num_action_variables - 1) / 2
 
-		self.weights = np.zeros((num_context_variables + num_action_variables + num_interactions))
-		#self.weights = np.random.rand(num_context_variables + num_action_variables + num_interactions)
+		num_weights = num_context_variables + num_action_variables + num_interactions
+
+		self.weights = np.zeros((num_weights))
 		self.bias = 0
 
 		# Initialize previous actions array to have warm start when maximizing
 		# In order: [price, productid, color, adtype, header]
 		# where color is green, adtype is skyscraper and header is 15
-		self.prev_actions = np.array([5.00, 18, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0])
+		#self.prev_actions = np.array([5.00, 18, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0])
+		self.prev_actions = np.array(encode.encode_action([15,'skyscraper','green',18,5.0]))
 
 		self.num_context_variables = num_context_variables
 		self.num_action_variables = num_action_variables
@@ -58,10 +65,10 @@ class LinearModel(Model):
 		self.random = RandomModel()
 
 		context_bounds = [(AGE_MIN, AGE_MAX)] + \
-						[(0,1)]* (len(COLOR_TYPES)+len(AD_TYPES)+len(HEADER_TYPES))
+						[(0,1)]* (len(AGENTS)+len(REFERERS)+len(LANGUAGES))
 
 		action_bounds = [(PRICE_MIN, PRICE_MAX), (PRODUCT_MIN, PRODUCT_MAX)] + \
-		 				[(0,1)]* (len(AGENTS)+len(REFERERS)+len(LANGUAGES)) + \
+		 				[(0,1)]* (len(COLOR_TYPES)+len(AD_TYPES)+len(HEADER_TYPES)) +\
 						[(PRICE_MIN**2, PRICE_MAX**2)]
 
 		self.bounds = context_bounds + action_bounds
@@ -70,7 +77,10 @@ class LinearModel(Model):
 		self.vectors = []
 		self.rewards = []
 
-		self.weights = np.load("weights.npy")
+		if os.path.isfile('weights.npy'):
+			loaded_weights = np.load("weights.npy")
+			if len(loaded_weights) == len(self.weights):
+				self.weights = np.load("weights.npy")
 
 	def _build_interactions(self, vector):
 		interactions = []
@@ -95,6 +105,7 @@ class LinearModel(Model):
 		# Interactions
 		information_vector = np.concatenate((information_vector, self._build_interactions(information_vector)))
 
+
 		# Take inner product of weights and information_vector
 		y = self.bias + np.inner(self.weights, information_vector)
 
@@ -117,6 +128,7 @@ class LinearModel(Model):
 		print "EXPLOITATION PHASE %i" % self.i
 
 		bounds = self.action_bounds[:-1]
+		#print bounds
 
 		# Use previous action weights as initialization to have a warm start
 		result = minimize(self._linear_model, self.prev_actions, args = (context['context']), method = 'L-BFGS-B', bounds = bounds, options = {'maxiter': 1000})
