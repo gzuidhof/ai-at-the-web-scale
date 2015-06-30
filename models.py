@@ -7,6 +7,7 @@ import time
 import numpy as np
 import util
 from scipy.optimize import minimize
+from scipy.stats import multivariate_normal
 import os.path
 
 
@@ -177,11 +178,11 @@ class LinearModel(Model):
 class ContextlessThompsonModel(Model):
 
 	def __init__(self):
-		self.price_bins = 5
+		self.price_bins = 50
 
 		self.a = np.ones((len(HEADER_TYPES), len(AD_TYPES), len(COLOR_TYPES), self.price_bins, 1, 2))
 		self.b = np.ones((len(HEADER_TYPES), len(AD_TYPES), len(COLOR_TYPES), self.price_bins, 1, 2))
-
+		self.gaussian_std = 5
 	def arm_to_action(self, arm):
 		return HEADER_TYPES[arm[0]], AD_TYPES[arm[1]], COLOR_TYPES[arm[2]], arm[4] + PRODUCT_MIN, (arm[3] + 1) * (PRICE_MAX / self.price_bins)
 
@@ -209,6 +210,27 @@ class ContextlessThompsonModel(Model):
 
 		return self.arm_to_action(best)
 
+	def update_gaussian(self, arm, context, action, reward):
+
+		coeff = [multivariate_normal.pdf((x+1)*50/self.price_bins,action[-1],self.gaussian_std) \
+		 			for x in range(self.price_bins)]
+		coeff = np.array(coeff)*5
+		print coeff
+		#
+		# (0, 0, 1, :, 0, 0)
+		arm = list(arm)
+		arm[3] = slice(None)
+		arm = tuple(arm)
+
+		if reward > 0:
+			update = (reward / 5.) * coeff
+			self.a[arm] += update
+		else:
+			self.b[arm] += ((50 - action[-1]) / 5. + 1) *coeff
+			#self.b[arm] += coeff
+
+
+
 	# Override
 	def observe(self, context, action, reward):
 		super(ContextlessThompsonModel, self).observe(context, action, reward)
@@ -218,10 +240,5 @@ class ContextlessThompsonModel(Model):
 
 		arm = tuple(list(arm) + [platform_index])
 
-		if reward > 0:
-			self.a[arm] += reward / 5.
-		else:
-			#self.b[arm] += np.clip(((50-action[-1])/50),0,1) * 10 + 1
-			self.b[arm] += (50 - action[-1]) / 5. + 1
-
-		print np.unravel_index(np.argmax(self.a), self.a.shape)
+		self.update_gaussian(arm, context, action, reward)
+		#print np.unravel_index(np.argmax(self.a), self.a.shape)
