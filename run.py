@@ -106,11 +106,11 @@ if __name__ == '__main__':
 	for run_id in range(1, 3000, 1000):
 		print 'run_id:', run_id
 		runner = ModelRunner(ContextlessThompsonModel())
-		cr, m, std, time = runner.run(run_ids=[run_id])
+		cr, m, std, timed = runner.run(run_ids=[run_id])
 		cum_rewards.append(cr)
 		mean_rewards.append(m)
 		std_rewards.append(std)
-		times.append(time)
+		times.append(timed)
 
 	print "MEAN CUM REWARD", mean(cum_rewards)
 	print "MEAN AVG REWARD", mean(mean_rewards)
