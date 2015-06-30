@@ -25,7 +25,7 @@ class ModelRunner():
 		self.model = model
 		self.job = plotta.Job(type(model).__name__)
 
-	def run(self, run_ids = [1], ids = range(1000)):
+	def run(self, run_ids = [1], ids = range(10000)):
 
 		getter = ContextGetPool()
 
@@ -44,7 +44,6 @@ class ModelRunner():
 			#Perform an action
 			action = self.model.propose(context)
 
-
 			#Get the response, determine reward
 			response = api.propose_page(id, run_id, action)
 			success, reward = self.extract_reward(response, action)
@@ -59,7 +58,7 @@ class ModelRunner():
 
 			mean_stream.append(i, mean_rewards[-1])
 
-			print "Reward: %.2f, mean reward: %.2f, std reward: %.2f" % (reward, np.mean(rewards), np.std(rewards)), '(%.2f)'%action[-1]
+			print "ID: %i, reward: %.2f, mean reward: %.2f, std reward: %.2f" % (id, reward, np.mean(rewards), np.std(rewards)), '(%.2f)'%action[-1]
 			print "Success: %i, percent success: %.2f" % (success, np.mean(successes) * 100)
 			i+=1
 
@@ -76,5 +75,5 @@ class ModelRunner():
 		return success, reward
 
 if __name__ == '__main__':
-	runner = ModelRunner(LinearModel())
+	runner = ModelRunner(ContextlessThompsonModel())
 	runner.run()

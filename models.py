@@ -9,6 +9,7 @@ import util
 from scipy.optimize import minimize
 import os.path
 
+
 import sklearn.linear_model
 
 
@@ -178,28 +179,33 @@ class ContextlessThompsonModel(Model):
 	def __init__(self):
 		self.price_bins = 5
 
-		self.a = np.ones((len(HEADER_TYPES), len(AD_TYPES), len(COLOR_TYPES), self.price_bins, 5))
-		self.b = np.ones((len(HEADER_TYPES), len(AD_TYPES), len(COLOR_TYPES), self.price_bins, 5))
+		self.a = np.ones((len(HEADER_TYPES), len(AD_TYPES), len(COLOR_TYPES), self.price_bins, 1, 2))
+		self.b = np.ones((len(HEADER_TYPES), len(AD_TYPES), len(COLOR_TYPES), self.price_bins, 1, 2))
 
 	def arm_to_action(self, arm):
-		return HEADER_TYPES[arm[0]], AD_TYPES[arm[1]], COLOR_TYPES[arm[2]], arm[4] + 10, (arm[3] + 1) * (50 / self.price_bins)
+		return HEADER_TYPES[arm[0]], AD_TYPES[arm[1]], COLOR_TYPES[arm[2]], arm[4] + PRODUCT_MIN, (arm[3] + 1) * (PRICE_MAX / self.price_bins)
 
 	def action_to_arm(self, action):
-		return HEADER_TYPES.index(action[0]), AD_TYPES.index(action[1]), COLOR_TYPES.index(action[2]), action[4] / (50 / self.price_bins) - 1, action[3] - 10
+		return HEADER_TYPES.index(action[0]), AD_TYPES.index(action[1]), COLOR_TYPES.index(action[2]), action[4] / (PRICE_MAX / self.price_bins) - 1, action[3] - PRODUCT_MIN
 
 	# Override
 	def propose(self, context):
-		it = np.nditer(self.a, flags=['multi_index'])
+		platform_index = int(context['context']['Agent'] == 'mobile')
+		arms = self.a[:, :, :, :, :, platform_index]
 
-		samples = np.ones_like(self.a)
+		it = np.nditer(arms, flags=['multi_index'])
+
+		samples = np.ones_like(arms)
 
 		while not it.finished:
 			ix = it.multi_index
-			samples[ix] = np.random.beta(self.a[ix], self.b[ix])
+			ixx = tuple(list(ix) + [platform_index])
+
+			samples[ix] = np.random.beta(self.a[ixx], self.b[ixx])
 			it.iternext()
 
 		best = np.argmax(samples)
-		best = np.unravel_index(best, self.a.shape)
+		best = np.unravel_index(best, arms.shape)
 
 		return self.arm_to_action(best)
 
@@ -208,10 +214,14 @@ class ContextlessThompsonModel(Model):
 		super(ContextlessThompsonModel, self).observe(context, action, reward)
 
 		arm = self.action_to_arm(action)
+		platform_index = int(context['context']['Agent'] == 'mobile')
+
+		arm = tuple(list(arm) + [platform_index])
 
 		if reward > 0:
-			self.a[arm] += 1
+			self.a[arm] += reward / 5.
 		else:
-			self.b[arm] += 1
+			#self.b[arm] += np.clip(((50-action[-1])/50),0,1) * 10 + 1
+			self.b[arm] += (50 - action[-1]) / 5. + 1
 
 		print np.unravel_index(np.argmax(self.a), self.a.shape)
