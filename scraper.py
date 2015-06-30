@@ -7,7 +7,7 @@ import api
 import models
 import csv
 
-HEADER = 'Age, Agent, Referer, ID, Language, Header, AdType, Color, Product, Price'.split(', ')
+HEADER = 'Age, Agent, Referer, ID, Language, Header, AdType, Color, Product, Price, Success, Reward'.split(', ')
 
 class Scraper():
 
@@ -34,6 +34,9 @@ class Scraper():
 
         data = []
         for (id, run_id), context in itertools.izip(context_ids, context_gen):
+            if id % 2000 == 0:
+                print run_id, id
+
             action = model.propose(context)
             response = api.propose_page(id, run_id, action)
             success, reward = self._extract_reward(response, action)
@@ -53,13 +56,13 @@ class Scraper():
             writer.writerows(data)
 
     def _extract_reward(self, response, action):
-		#0 or 1
-		success = response['effect']['Success']
+        #0 or 1
+        success = response['effect']['Success']
 
-		#success * price
-		reward = success * action[-1]
+        #success * price
+        reward = success * action[-1]
 
-		return success, reward
+        return success, reward
 
     def go(self, run_ids):
         self.todo = Queue()
@@ -92,5 +95,5 @@ class Scraper():
 
 
 if __name__ == '__main__':
-    scraper = Scraper(100)
-    scraper.go(range(5000))
+    scraper = Scraper(8)
+    scraper.go(range(5000)[40:])
