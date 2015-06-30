@@ -178,11 +178,12 @@ class LinearModel(Model):
 class ContextlessThompsonModel(Model):
 
 	def __init__(self):
-		self.price_bins = 50
+		self.price_bins = 1
 
-		self.a = np.ones((len(HEADER_TYPES), len(AD_TYPES), len(COLOR_TYPES), self.price_bins, 1, 2))
-		self.b = np.ones((len(HEADER_TYPES), len(AD_TYPES), len(COLOR_TYPES), self.price_bins, 1, 2))
+		self.a = np.ones((len(HEADER_TYPES), len(AD_TYPES), len(COLOR_TYPES), self.price_bins, 1, len(AGENTS), len(REFERERS), len(LANGUAGES)))
+		self.b = np.ones((len(HEADER_TYPES), len(AD_TYPES), len(COLOR_TYPES), self.price_bins, 1, len(AGENTS), len(REFERERS), len(LANGUAGES)))
 		self.gaussian_std = 5
+
 	def arm_to_action(self, arm):
 		return HEADER_TYPES[arm[0]], AD_TYPES[arm[1]], COLOR_TYPES[arm[2]], arm[4] + PRODUCT_MIN, (arm[3] + 1) * (PRICE_MAX / self.price_bins)
 
@@ -191,8 +192,11 @@ class ContextlessThompsonModel(Model):
 
 	# Override
 	def propose(self, context):
-		platform_index = int(context['context']['Agent'] == 'mobile')
-		arms = self.a[:, :, :, :, :, platform_index]
+		platform_index = AGENTS.index(context['context']['Agent'])
+		referer_index = REFERERS.index(context['context']['Referer'])
+		language_index = LANGUAGES.index(context['context']['Language'])
+
+		arms = self.a[:, :, :, :, :, platform_index, referer_index, language_index]
 
 		it = np.nditer(arms, flags=['multi_index'])
 
@@ -200,9 +204,15 @@ class ContextlessThompsonModel(Model):
 
 		while not it.finished:
 			ix = it.multi_index
-			ixx = tuple(list(ix) + [platform_index])
+			ixx = tuple(list(ix) + [platform_index, referer_index, language_index])
 
-			samples[ix] = np.random.beta(self.a[ixx], self.b[ixx])
+			# Never choose banner, 15 and 35 for mobile users
+			if context['context']['Agent'] == 'mobile':
+				if ix[1] == 'banner' or ix[0] == 15 or ix[0] == 35:
+					samples[ix] = -1
+			else:
+				samples[ix] = np.random.beta(self.a[ixx], self.b[ixx])
+
 			it.iternext()
 
 		best = np.argmax(samples)
@@ -214,8 +224,8 @@ class ContextlessThompsonModel(Model):
 
 		coeff = [multivariate_normal.pdf((x+1)*50/self.price_bins,action[-1],self.gaussian_std) \
 		 			for x in range(self.price_bins)]
-		coeff = np.array(coeff)*5
-		print coeff
+		coeff = np.array(coeff) * 5
+
 		#
 		# (0, 0, 1, :, 0, 0)
 		arm = list(arm)
@@ -223,10 +233,9 @@ class ContextlessThompsonModel(Model):
 		arm = tuple(arm)
 
 		if reward > 0:
-			update = (reward / 5.) * coeff
-			self.a[arm] += update
+			self.a[arm] += coeff * 1
 		else:
-			self.b[arm] += ((50 - action[-1]) / 5. + 1) *coeff
+			self.b[arm] += coeff * 1
 			#self.b[arm] += coeff
 
 
@@ -236,9 +245,12 @@ class ContextlessThompsonModel(Model):
 		super(ContextlessThompsonModel, self).observe(context, action, reward)
 
 		arm = self.action_to_arm(action)
-		platform_index = int(context['context']['Agent'] == 'mobile')
 
-		arm = tuple(list(arm) + [platform_index])
+		platform_index = AGENTS.index(context['context']['Agent'])
+		referer_index = REFERERS.index(context['context']['Referer'])
+		language_index = LANGUAGES.index(context['context']['Language'])
+
+		arm = tuple(list(arm) + [platform_index, referer_index, language_index])
 
 		self.update_gaussian(arm, context, action, reward)
 		#print np.unravel_index(np.argmax(self.a), self.a.shape)

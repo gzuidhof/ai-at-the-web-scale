@@ -1,11 +1,11 @@
-HEADER_TYPES = [5]
-AD_TYPES = ['skyscraper', 'square']
+HEADER_TYPES = [5, 15, 35]
+AD_TYPES = ['skyscraper', 'square', 'banner']
 COLOR_TYPES = ['green', 'blue', 'red', 'white']
 
 #Context possibilities
 AGENTS = ['OSX', 'Windows', 'Linux', 'mobile']
 REFERERS = ['Google', 'Bing', 'NA']
-LANGUAGES = ['EN', 'NL', 'GE', 'NA']
+LANGUAGES = ['EN', 'NL', 'GE']
 
 PRICE_MAX = 50.00
 PRICE_MIN = 0.01

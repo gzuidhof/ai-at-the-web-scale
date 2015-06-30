@@ -25,7 +25,7 @@ class ModelRunner():
 		self.model = model
 		self.job = plotta.Job(type(model).__name__)
 
-	def run(self, run_ids = [1], ids = range(10000)):
+	def run(self, run_ids = [3], ids = range(10000)):
 
 		getter = ContextGetPool()
 
@@ -35,9 +35,13 @@ class ModelRunner():
 		rewards = []
 		successes = []
 		mean_rewards = []
+		actions = []
+		cum_reward = 0
 
 		self.job.start()
 		mean_stream = self.job.add_stream('Mean reward')
+		mean100_stream = self.job.add_stream('Mean reward100')
+		cum_stream = self.job.add_stream('Cumulative reward')
 
 		i = 0
 		for (run_id, id), context in itertools.izip(context_ids, context_gen):
@@ -48,6 +52,8 @@ class ModelRunner():
 			response = api.propose_page(id, run_id, action)
 			success, reward = self.extract_reward(response, action)
 
+			actions.append(action[-1])
+
 			#Observe the reward
 			self.model.observe(context, action, reward)
 
@@ -55,15 +61,19 @@ class ModelRunner():
 			rewards.append(reward)
 			successes.append(success)
 			mean_rewards.append(np.mean(rewards))
+			cum_reward += reward
 
 			mean_stream.append(i, mean_rewards[-1])
+			mean100_stream.append(i, np.mean(rewards[-100:]))
+			cum_stream.append(i, cum_reward)
+
 
 			print "ID: %i, reward: %.2f, mean reward: %.2f, std reward: %.2f" % (id, reward, np.mean(rewards), np.std(rewards)), '(%.2f)'%action[-1]
 			print "Success: %i, percent success: %.2f" % (success, np.mean(successes) * 100)
 			i+=1
 
-		plt.plot(ids, mean_rewards)
-		plt.show()
+		#plt.scatter(ids, actions)
+		#plt.show()
 
 	def extract_reward(self, response, action):
 		#0 or 1
