@@ -112,7 +112,7 @@ if __name__ == '__main__':
 		std_rewards.append(std)
 		times.append(timed)
 
-	print "MEAN CUM REWARD", mean(cum_rewards)
-	print "MEAN AVG REWARD", mean(mean_rewards)
-	print "MEAN STD REWARD", mean(std_rewards)
-	print "MEAN TIME", mean(times)
+	print "MEAN CUM REWARD", sum(cum_rewards)/len(cum_rewards)
+	print "MEAN AVG REWARD", sum(mean_rewards)/len(mean_rewards)
+	print "MEAN STD REWARD", sum(std_rewards)/len(std_rewards)
+	print "MEAN TIME", sum(times)/len(times)
