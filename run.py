@@ -26,7 +26,7 @@ class ModelRunner():
 		self.model = model
 		self.job = plotta.Job(type(model).__name__)
 
-	def run(self, run_ids = [4], ids = range(2000)):
+	def run(self, run_ids = [4], ids = range(4000)):
 
 		getter = ContextGetPool()
 
@@ -103,7 +103,7 @@ if __name__ == '__main__':
 	std_rewards = []
 	times = []
 
-	for run_id in range(1, 3000, 1000):
+	for run_id in range(0, 5000, 1000):
 		print 'run_id:', run_id
 		runner = ModelRunner(ContextlessThompsonModel())
 		cr, m, std, timed = runner.run(run_ids=[run_id])
