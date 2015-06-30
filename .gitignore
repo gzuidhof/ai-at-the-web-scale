@@ -57,3 +57,4 @@ scraper/.spyderproject
 *.spyderproject
 credentials.py
 *.npy
+*.csv
