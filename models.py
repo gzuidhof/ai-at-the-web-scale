@@ -242,7 +242,7 @@ class ContextlessThompsonModel(Model):
 
 	# Override
 	def observe(self, context, action, reward):
-		super(ContextlessThompsonModel, self).observe(context, action, reward)
+		#super(ContextlessThompsonModel, self).observe(context, action, reward)
 
 		arm = self.action_to_arm(action)
 

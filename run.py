@@ -8,6 +8,7 @@ import itertools
 import numpy as np
 
 import matplotlib.pyplot as plt
+import time
 
 class ModelRunner():
 	"""
@@ -25,7 +26,7 @@ class ModelRunner():
 		self.model = model
 		self.job = plotta.Job(type(model).__name__)
 
-	def run(self, run_ids = [3], ids = range(10000)):
+	def run(self, run_ids = [4], ids = range(2000)):
 
 		getter = ContextGetPool()
 
@@ -42,6 +43,10 @@ class ModelRunner():
 		mean_stream = self.job.add_stream('Mean reward')
 		mean100_stream = self.job.add_stream('Mean reward100')
 		cum_stream = self.job.add_stream('Cumulative reward')
+
+
+		start = time.time()
+		print "Starting!"
 
 		i = 0
 		for (run_id, id), context in itertools.izip(context_ids, context_gen):
@@ -68,9 +73,15 @@ class ModelRunner():
 			cum_stream.append(i, cum_reward)
 
 
-			print "ID: %i, reward: %.2f, mean reward: %.2f, std reward: %.2f" % (id, reward, np.mean(rewards), np.std(rewards)), '(%.2f)'%action[-1]
-			print "Success: %i, percent success: %.2f" % (success, np.mean(successes) * 100)
+			#print "ID: %i, reward: %.2f, mean reward: %.2f, std reward: %.2f" % (id, reward, np.mean(rewards), np.std(rewards)), '(%.2f)'%action[-1]
+			#print "Success: %i, percent success: %.2f" % (success, np.mean(successes) * 100)
 			i+=1
+
+		print "Cumulative reward:", cum_reward
+		print "mean reward: %.2f, std reward: %.2f" % (np.mean(rewards), np.std(rewards))
+		print "Running time:", time.time()-start, "---"
+
+		return cum_reward, np.mean(rewards), np.std(rewards), time.time()-start
 
 		#plt.scatter(ids, actions)
 		#plt.show()
@@ -85,5 +96,23 @@ class ModelRunner():
 		return success, reward
 
 if __name__ == '__main__':
-	runner = ModelRunner(ContextlessThompsonModel())
-	runner.run()
+
+
+	cum_rewards = []
+	mean_rewards = []
+	std_rewards = []
+	times = []
+
+	for run_id in range(1, 3000, 1000):
+		print 'run_id:', run_id
+		runner = ModelRunner(ContextlessThompsonModel())
+		cr, m, std, time = runner.run(run_ids=[run_id])
+		cum_rewards.append(cr)
+		mean_rewards.append(m)
+		std_rewards.append(std)
+		times.append(time)
+
+	print "MEAN CUM REWARD", mean(cum_rewards)
+	print "MEAN AVG REWARD", mean(mean_rewards)
+	print "MEAN STD REWARD", mean(std_rewards)
+	print "MEAN TIME", mean(times)
