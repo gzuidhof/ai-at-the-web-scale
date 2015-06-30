@@ -39,7 +39,7 @@ class RandomModel(Model):
 
 class LinearModel(Model):
 
-	def __init__(self, eta = 0.00001):
+	def __init__(self, eta = 0.0001):
 
 		num_context_variables = 1+ len(AGENTS)+len(REFERERS)+len(LANGUAGES)
 		num_action_variables = 2 + len(COLOR_TYPES)+len(AD_TYPES)+len(HEADER_TYPES) + 1
@@ -100,11 +100,10 @@ class LinearModel(Model):
 
 		# Create information vector by concatenating the context with the actions
 		information_vector = np.concatenate((context_vector, actions))
-		information_vector = np.concatenate((information_vector, [actions[0]**2]))
+		information_vector = np.concatenate((information_vector, [-actions[0]**2]))
 
 		# Interactions
 		information_vector = np.concatenate((information_vector, self._build_interactions(information_vector)))
-
 
 		# Take inner product of weights and information_vector
 		y = self.bias + np.inner(self.weights, information_vector)
@@ -121,7 +120,7 @@ class LinearModel(Model):
 	def propose(self, context):
 		self.i += 1
 
-		if self.i < 1:
+		if self.i < 1000:
 			print "EXPLORATION PHASE %i" % self.i
 			return self.random.propose(context)
 
@@ -156,13 +155,63 @@ class LinearModel(Model):
 		error = (reward - fx)
 
 		#information_vector = np.array([v / float(x[1]) for v, x in zip(information_vector, self.bounds)])
-		information_vector = np.clip(information_vector, -1, 1)
+		#information_vector = np.clip(information_vector, -1, 1)
+		information_vector[0] /= 110.
+		information_vector[12] /= 50.
+		information_vector[13] = (information_vector[13] - 18) / 8.
+		information_vector[-1] /= 50.**2
 
 		# Update weights and bias
-		self.weights += self.eta * error * information_vector
-		self.bias += self.eta * error
+		self.weights += (self.eta / self.i**0.25) * error * information_vector - 0.01 * self.weights
+		self.bias += (self.eta / self.i**0.25) * error
 
 		# Print diagnostics
+		print "Action: ", action
+		print "Context: ", context
 		print "Predicted reward: %.2f" % fx
 		print "Error: %.2f" % error
 		util.print_weights(self.bias, self.weights)
+
+
+class ContextlessThompsonModel(Model):
+
+	def __init__(self):
+		self.price_bins = 5
+
+		self.a = np.ones((len(HEADER_TYPES), len(AD_TYPES), len(COLOR_TYPES), self.price_bins, 5))
+		self.b = np.ones((len(HEADER_TYPES), len(AD_TYPES), len(COLOR_TYPES), self.price_bins, 5))
+
+	def arm_to_action(self, arm):
+		return HEADER_TYPES[arm[0]], AD_TYPES[arm[1]], COLOR_TYPES[arm[2]], arm[4] + 10, (arm[3] + 1) * (50 / self.price_bins)
+
+	def action_to_arm(self, action):
+		return HEADER_TYPES.index(action[0]), AD_TYPES.index(action[1]), COLOR_TYPES.index(action[2]), action[4] / (50 / self.price_bins) - 1, action[3] - 10
+
+	# Override
+	def propose(self, context):
+		it = np.nditer(self.a, flags=['multi_index'])
+
+		samples = np.ones_like(self.a)
+
+		while not it.finished:
+			ix = it.multi_index
+			samples[ix] = np.random.beta(self.a[ix], self.b[ix])
+			it.iternext()
+
+		best = np.argmax(samples)
+		best = np.unravel_index(best, self.a.shape)
+
+		return self.arm_to_action(best)
+
+	# Override
+	def observe(self, context, action, reward):
+		super(ContextlessThompsonModel, self).observe(context, action, reward)
+
+		arm = self.action_to_arm(action)
+
+		if reward > 0:
+			self.a[arm] += 1
+		else:
+			self.b[arm] += 1
+
+		print np.unravel_index(np.argmax(self.a), self.a.shape)

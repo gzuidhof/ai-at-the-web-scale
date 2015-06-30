@@ -8,6 +8,8 @@ def print_weights(bias, weights):
     for i, x in enumerate(weight_labels):
         print "%s: %.5f" % (x, weights[i])
 
+    return
+
     dic = OrderedDict()
 
     x = len(weight_labels)
@@ -22,7 +24,6 @@ def print_weights(bias, weights):
     foo = OrderedDict(sorted(dic.iteritems(), key=lambda x: x[1]))
 
     for x in foo:
-        if x == "price":
-            print x, foo[x]
+        print x, foo[x]
 
     print "Bias: %.5f" % bias
