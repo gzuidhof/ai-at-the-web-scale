@@ -39,10 +39,10 @@ class ModelRunner():
 		actions = []
 		cum_reward = 0
 
-		self.job.start()
-		mean_stream = self.job.add_stream('Mean reward')
-		mean100_stream = self.job.add_stream('Mean reward100')
-		cum_stream = self.job.add_stream('Cumulative reward')
+		#self.job.start()
+		#mean_stream = self.job.add_stream('Mean reward')
+		#mean100_stream = self.job.add_stream('Mean reward100')
+		#cum_stream = self.job.add_stream('Cumulative reward')
 
 
 		start = time.time()
@@ -68,9 +68,9 @@ class ModelRunner():
 			mean_rewards.append(np.mean(rewards))
 			cum_reward += reward
 
-			mean_stream.append(i, mean_rewards[-1])
-			mean100_stream.append(i, np.mean(rewards[-100:]))
-			cum_stream.append(i, cum_reward)
+			#mean_stream.append(i, mean_rewards[-1])
+			#mean100_stream.append(i, np.mean(rewards[-100:]))
+			#cum_stream.append(i, cum_reward)
 
 
 			#print "ID: %i, reward: %.2f, mean reward: %.2f, std reward: %.2f" % (id, reward, np.mean(rewards), np.std(rewards)), '(%.2f)'%action[-1]
