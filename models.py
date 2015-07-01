@@ -207,9 +207,8 @@ class ContextlessThompsonModel(Model):
 			ixx = tuple(list(ix) + [platform_index, referer_index, language_index])
 
 			# Never choose banner, 15 and 35 for mobile users
-			if context['context']['Agent'] == 'mobile':
-				if ix[1] == 'banner' or ix[0] == 15 or ix[0] == 35:
-					samples[ix] = -1
+			if context['context']['Agent'] == 'mobile' and (ix[1] == AD_TYPES.index('banner') or ix[0] == HEADER_TYPES.index(15) or ix[0] == HEADER_TYPES.index(35)):
+				samples[ix] = -1
 			else:
 				samples[ix] = np.random.beta(self.a[ixx], self.b[ixx])
 
@@ -234,9 +233,9 @@ class ContextlessThompsonModel(Model):
 
 		if reward > 0:
 			#self.a[arm] += (reward/5.) * coeff
-			self.a[arm] += coeff * 2
+			self.a[arm] += coeff * 4
 		else:
-			self.b[arm] += coeff * 1.8
+			self.b[arm] += coeff * 3.6
 			#self.b[arm] += coeff
 
 
