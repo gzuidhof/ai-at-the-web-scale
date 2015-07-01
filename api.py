@@ -17,7 +17,7 @@ def get_context(i=0,run_id=0):
     if i < 0 or i >10000:
         print "Warning: Possibly out of bounds i {0}".format(i)
 
-    assert run_id < 10001
+    #assert run_id < 10001
 
 
     params = "?i={0}&runid={1}&teamid={2}&teampw={3}".format(i,run_id,TEAM_ID,PASSWORD)
@@ -47,7 +47,7 @@ def propose_page(i, run_id, opts):
 
     header = int(header)
 
-    assert run_id < 10001
+    #assert run_id < 10001
     assert header in HEADER_TYPES
     assert adtype in AD_TYPES
     assert color in COLOR_TYPES

@@ -26,7 +26,7 @@ class ModelRunner():
 		self.model = model
 		self.job = plotta.Job(type(model).__name__)
 
-	def run(self, run_ids = [4], ids = range(4000)):
+	def run(self, run_ids = [4], ids = range(10001): #range(4000)):
 
 		getter = ContextGetPool()
 
@@ -40,7 +40,7 @@ class ModelRunner():
 		actions = []
 		cum_reward = 0
 
-		self.job.job_name+=str(run_ids[0])
+		self.job.job_name+= ' run_id: '+str(run_ids[0])
 		self.job.start()
 		mean_stream = self.job.add_stream('Mean reward')
 		mean100_stream = self.job.add_stream('Mean reward100')
@@ -69,7 +69,7 @@ class ModelRunner():
 			mean_rewards.append(np.mean(rewards))
 			cum_reward += reward
 
-			if i % 50 == 0:
+			if i % 100 == 0:
 				mean_stream.append(i, mean_rewards[-1])
 				mean100_stream.append(i, np.mean(rewards[-100:]))
 				cum_stream.append(i, cum_reward)
@@ -105,9 +105,7 @@ if __name__ == '__main__':
 	std_rewards = []
 	times = []
 
-	#for run_id in range(10000,10101):
-	for run_id in range(0, 5000, 1000):
-	#for run_id in [0]:
+	for run_id in range(10000,10101):
 		print 'run_id:', run_id
 		runner = ModelRunner(ContextlessThompsonModel())
 		cr, m, std, timed = runner.run(run_ids=[run_id])
