@@ -31,6 +31,7 @@ class ModelRunner():
 		getter = ContextGetPool()
 
 		context_ids = [c for c in itertools.product(run_ids, ids)]
+
 		context_gen = getter.get(context_ids)
 
 		rewards = []
@@ -39,14 +40,14 @@ class ModelRunner():
 		actions = []
 		cum_reward = 0
 
-		#self.job.start()
-		#mean_stream = self.job.add_stream('Mean reward')
-		#mean100_stream = self.job.add_stream('Mean reward100')
-		#cum_stream = self.job.add_stream('Cumulative reward')
+		self.job.job_name+=str(run_ids[0])
+		self.job.start()
+		mean_stream = self.job.add_stream('Mean reward')
+		mean100_stream = self.job.add_stream('Mean reward100')
+		cum_stream = self.job.add_stream('Cumulative reward')
 
 
 		start = time.time()
-		print "Starting!"
 
 		i = 0
 		for (run_id, id), context in itertools.izip(context_ids, context_gen):
@@ -68,18 +69,19 @@ class ModelRunner():
 			mean_rewards.append(np.mean(rewards))
 			cum_reward += reward
 
-			#mean_stream.append(i, mean_rewards[-1])
-			#mean100_stream.append(i, np.mean(rewards[-100:]))
-			#cum_stream.append(i, cum_reward)
+			if i % 50 == 0:
+				mean_stream.append(i, mean_rewards[-1])
+				mean100_stream.append(i, np.mean(rewards[-100:]))
+				cum_stream.append(i, cum_reward)
 
 
 			#print "ID: %i, reward: %.2f, mean reward: %.2f, std reward: %.2f" % (id, reward, np.mean(rewards), np.std(rewards)), '(%.2f)'%action[-1]
 			#print "Success: %i, percent success: %.2f" % (success, np.mean(successes) * 100)
 			i+=1
 
-		print "Cumulative reward:", cum_reward
+		print "\nCumulative reward:", cum_reward
 		print "mean reward: %.2f, std reward: %.2f" % (np.mean(rewards), np.std(rewards))
-		print "Running time:", time.time()-start, "---"
+		print "Running time:", time.time()-start
 
 		return cum_reward, np.mean(rewards), np.std(rewards), time.time()-start
 
@@ -103,7 +105,9 @@ if __name__ == '__main__':
 	std_rewards = []
 	times = []
 
+	#for run_id in range(10000,10101):
 	for run_id in range(0, 5000, 1000):
+	#for run_id in [0]:
 		print 'run_id:', run_id
 		runner = ModelRunner(ContextlessThompsonModel())
 		cr, m, std, timed = runner.run(run_ids=[run_id])
@@ -111,6 +115,15 @@ if __name__ == '__main__':
 		mean_rewards.append(m)
 		std_rewards.append(std)
 		times.append(timed)
+
+		out = str(sum(cum_rewards)/len(cum_rewards))  + \
+			', '+ str(sum(mean_rewards)/len(mean_rewards)) + \
+			', '+ str(sum(std_rewards)/len(std_rewards))+ \
+			', '+ str(sum(times)/len(times))
+		print out
+		with open("data/Output"+str(run_id)+".txt", "w") as text_file:
+			text_file.write(out)
+
 
 	print "MEAN CUM REWARD", sum(cum_rewards)/len(cum_rewards)
 	print "MEAN AVG REWARD", sum(mean_rewards)/len(mean_rewards)
