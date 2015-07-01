@@ -16,7 +16,8 @@ class ContextGetPool():
                 #print "Killing "+ str(worker_id)
                 break #kill the worker
 
-            response = api.get_context(task[0],task[1])
+            response = api.get_context(task[1],task[0])
+            #print 'get', task[0], task[1]
             self.results.put(response)
 
     def _add_todo(self, id_tuples):
@@ -24,7 +25,7 @@ class ContextGetPool():
         for i, tup in enumerate(id_tuples):
             self.todo.put(tup)
 
-    def get(self, id_tuples): #id_tuples: (id, run_id)[]
+    def get(self, id_tuples): #id_tuples: (run_id,id)[]
 
         self.todo = Queue()
         self.results = JoinableQueue()

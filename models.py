@@ -174,14 +174,14 @@ class LinearModel(Model):
 		print "Error: %.2f" % error
 		util.print_weights(self.bias, self.weights)
 
-
 class ContextlessThompsonModel(Model):
 
 	def __init__(self):
 		self.price_bins = 1
+		n_products = 1
 
-		self.a = np.ones((len(HEADER_TYPES), len(AD_TYPES), len(COLOR_TYPES), self.price_bins, 1, len(AGENTS), len(REFERERS), len(LANGUAGES)))
-		self.b = np.ones((len(HEADER_TYPES), len(AD_TYPES), len(COLOR_TYPES), self.price_bins, 1, len(AGENTS), len(REFERERS), len(LANGUAGES)))
+		self.a = np.ones((len(HEADER_TYPES), len(AD_TYPES), len(COLOR_TYPES), self.price_bins, n_products, len(AGENTS), len(REFERERS), len(LANGUAGES)))
+		self.b = np.ones((len(HEADER_TYPES), len(AD_TYPES), len(COLOR_TYPES), self.price_bins, n_products, len(AGENTS), len(REFERERS), len(LANGUAGES)))
 		self.gaussian_std = 5
 
 	def arm_to_action(self, arm):
@@ -233,9 +233,10 @@ class ContextlessThompsonModel(Model):
 		arm = tuple(arm)
 
 		if reward > 0:
-			self.a[arm] += coeff * 1
+			#self.a[arm] += (reward/5.) * coeff
+			self.a[arm] += coeff * 2
 		else:
-			self.b[arm] += coeff * 1
+			self.b[arm] += coeff * 1.8
 			#self.b[arm] += coeff
 
 
