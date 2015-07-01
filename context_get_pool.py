@@ -4,7 +4,9 @@ from threading import Thread
 
 
 class ContextGetPool():
-
+    """
+    Multithreaded context and proposal getter using producer-consumer model.
+    """
     def __init__(self, n_workers = 1):
         self.n_workers = n_workers
 
@@ -58,7 +60,7 @@ class ContextGetPool():
         self.results.close()
 
 
-
+# Test
 if __name__ == '__main__':
     #Run ID 0 full
     id_tuples = [(id, 0) for id in xrange(10001)]

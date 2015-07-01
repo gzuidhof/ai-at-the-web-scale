@@ -223,22 +223,18 @@ class ContextlessThompsonModel(Model):
 
 		coeff = [multivariate_normal.pdf((x+1)*50/self.price_bins,action[-1],self.gaussian_std) \
 		 			for x in range(self.price_bins)]
-		coeff = np.array(coeff) * 5
+		coeff = np.array(coeff) * 5. # top is 1.15
 
-		#
-		# (0, 0, 1, :, 0, 0)
 		arm = list(arm)
 		arm[3] = slice(None)
 		arm = tuple(arm)
 
+		lr = 4.
+
 		if reward > 0:
-			#self.a[arm] += (reward/5.) * coeff
-			self.a[arm] += coeff * 4
+			self.a[arm] += coeff * lr
 		else:
-			self.b[arm] += coeff * 3.6
-			#self.b[arm] += coeff
-
-
+			self.b[arm] += coeff * lr * 0.9 # lower due to more prevalence
 
 	# Override
 	def observe(self, context, action, reward):
@@ -253,4 +249,3 @@ class ContextlessThompsonModel(Model):
 		arm = tuple(list(arm) + [platform_index, referer_index, language_index])
 
 		self.update_gaussian(arm, context, action, reward)
-		#print np.unravel_index(np.argmax(self.a), self.a.shape)

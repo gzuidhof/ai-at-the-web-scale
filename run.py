@@ -75,8 +75,8 @@ class ModelRunner():
 				cum_stream.append(i, cum_reward)
 
 
-			#print "ID: %i, reward: %.2f, mean reward: %.2f, std reward: %.2f" % (id, reward, np.mean(rewards), np.std(rewards)), '(%.2f)'%action[-1]
-			#print "Success: %i, percent success: %.2f" % (success, np.mean(successes) * 100)
+			print "ID: %i, reward: %.2f, mean reward: %.2f, std reward: %.2f" % (id, reward, np.mean(rewards), np.std(rewards)), '(%.2f)'%action[-1]
+			print "Success: %i, percent success: %.2f" % (success, np.mean(successes) * 100)
 			i+=1
 
 		print "\nCumulative reward:", cum_reward
@@ -105,7 +105,7 @@ if __name__ == '__main__':
 	std_rewards = []
 	times = []
 
-	for run_id in range(10000,10101):
+	for run_id in range(1,2):
 		print 'run_id:', run_id
 		runner = ModelRunner(ContextlessThompsonModel())
 		cr, m, std, timed = runner.run(run_ids=[run_id])

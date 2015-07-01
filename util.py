@@ -18,9 +18,9 @@ def print_weights(bias, weights):
             key = weight_labels[i] + "," + weight_labels[j]
             dic[key] = weights[x]
 
-            #print "%s, %s: %.5f" % (weight_labels[i], weight_labels[j], self.weights[x])
             x += 1
 
+    # Order by weight
     foo = OrderedDict(sorted(dic.iteritems(), key=lambda x: x[1]))
 
     for x in foo:

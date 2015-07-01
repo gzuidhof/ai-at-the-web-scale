@@ -17,8 +17,8 @@ def get_context(i=0,run_id=0):
     if i < 0 or i >10000:
         print "Warning: Possibly out of bounds i {0}".format(i)
 
-    #assert run_id < 10001
-
+    # While training:
+    # assert run_id < 10001
 
     params = "?i={0}&runid={1}&teamid={2}&teampw={3}".format(i,run_id,TEAM_ID,PASSWORD)
     request_url = BASE_URL + CONTEXT_ACTION + params

@@ -2,13 +2,10 @@ import numpy as np
 from constants import *
 
 def one_hot_reverse(action_key, action_values):
-    #Select first
-    #selection = np.argmax(action_values)
-
-    #Select random
+    # Select random from ones
     one_indices = np.flatnonzero(action_values)
 
-    #No ones, go full random
+    # No ones, go full random
     if len(one_indices) == 0:
         one_indices = [np.random.choice(range(len(action_values)))]
 

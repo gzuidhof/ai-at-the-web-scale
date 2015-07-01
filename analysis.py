@@ -2,6 +2,9 @@ import numpy as np
 import pandas as pd
 from constants import *
 
+# File used for doing some offline manual analysis
+# Ignore...
+
 def load_runid(run_id):
     dat = pd.DataFrame.from_csv('data/'+str(run_id)+'.csv',index_col=False)
     dat = dat.replace(np.nan,'NA', regex=True)
