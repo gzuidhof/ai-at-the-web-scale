@@ -26,7 +26,7 @@ class ModelRunner():
 		self.model = model
 		self.job = plotta.Job(type(model).__name__)
 
-	def run(self, run_ids = [4], ids = range(10001): #range(4000)):
+	def run(self, run_ids = [4], ids = range(10001)): #range(4000)):
 
 		getter = ContextGetPool()
 
