@@ -10,6 +10,7 @@ class BootstrapThompsonSampler(Model):
         return np.random.choice(self.models).propose(context)
 
     def observe(self, context, action, reward):
+        # Super class prints some information.
         super(BootstrapThompsonSampler, self).observe(context, action, reward)
 
         for model in self.models:
